@@ -1,6 +1,6 @@
 # fudge
 
-Oh Fudge! A full-featured error and logging library for Go.
+Oh Fudge! A straight-forward error and logging library for Go.
 
 ## License
 
