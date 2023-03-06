@@ -7,6 +7,14 @@ import (
 
 type KeyValues map[string]string
 
+func (m *KeyValues) Clone() KeyValues {
+	clone := make(KeyValues, len(*m))
+	for k, v := range *m {
+		clone[k] = v
+	}
+	return clone
+}
+
 func (m *KeyValues) String() string {
 	return fmt.Sprintf("%v", m)
 }

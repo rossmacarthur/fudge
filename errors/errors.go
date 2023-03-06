@@ -7,14 +7,25 @@ import (
 )
 
 // New creates a new error with a message and options.
+//
+// This method is intended to be used to define local errors. A stack trace is
+// is attached to the error.
 func New(msg string, opts ...fudge.Option) error {
-	errors := Error{trace: trace(2)}
+	errors := Error{trace: trace(1)}
 	frame := &errors.trace[0]
 	frame.message = msg
 	for _, o := range opts {
 		o.Apply(frame)
 	}
 	return &errors
+}
+
+// NewSentinel creates a new sentinel error with a message and code.
+//
+// This method is intended to be used to define global sentinel errors. No
+// stack trace is attached until these errors are wrapped.
+func NewSentinel(msg string, code string) error {
+	return &Error{message: msg, code: code}
 }
 
 // Wrap wraps an existing error with a new message and options.
@@ -26,14 +37,28 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 	}
 
 	errors, ok := err.(*Error)
-	if ok {
-		frame := findCallSite(errors)
+	if ok && errors.trace == nil {
+		// wrapping a sentinel Fudge error
+		errors = errors.Clone()
+		errors.trace = trace(1)
+		frame := &errors.trace[0]
 		frame.message = msg
 		for _, o := range opts {
 			o.Apply(frame)
 		}
+
+	} else if ok {
+		// wrapping a Fudge error
+		errors = errors.Clone()
+		frame := findCallSite(errors, 1)
+		frame.message = msg
+		for _, o := range opts {
+			o.Apply(frame)
+		}
+
 	} else {
-		errors = &Error{original: err, trace: trace(2)}
+		// wrapping a non-Fudge error
+		errors = &Error{original: err, trace: trace(1)}
 		frame := &errors.trace[0]
 		frame.message = msg
 		for _, o := range opts {
@@ -44,10 +69,8 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 	return errors
 }
 
-func findCallSite(e *Error) *Frame {
-	const skip int = 3
-
-	file, line := call(skip)
+func findCallSite(e *Error, skip int) *Frame {
+	file, line := call(skip + 1)
 	for i, f := range e.trace {
 		if f.file == file && f.line == line {
 			return &e.trace[i]
@@ -56,7 +79,7 @@ func findCallSite(e *Error) *Frame {
 
 	// the call site doesn't exist in the trace so we need to add it
 	// by combining the traces
-	trace := trace(skip)
+	trace := trace(skip + 1)
 outer:
 	for _, f := range trace {
 		for j, g := range e.trace {

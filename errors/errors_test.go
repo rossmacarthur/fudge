@@ -95,6 +95,15 @@ github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: and another
 testing/testing.go:XXX
 runtime/asm:XXX`,
 		},
+		{
+			name:  "fudge sentinel",
+			errFn: func() error { return NewSentinel("such test", "123456") },
+			exp: `such test (123456)
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: very wrap
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: and another
+testing/testing.go:XXX
+runtime/asm:XXX`,
+		},
 	}
 
 	for _, tc := range tests {

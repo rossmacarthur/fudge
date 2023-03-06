@@ -19,10 +19,18 @@ type Frame struct {
 	line int
 }
 
+func (f *Frame) Clone() *Frame {
+	c := *f
+	if f.keyValues != nil {
+		c.keyValues = f.keyValues.Clone()
+	}
+	return &c
+}
+
 // SetKeyValue implements the fudge.apply interface
 func (f *Frame) SetKeyValue(k, v string) {
 	if f.keyValues == nil {
-		f.keyValues = make(map[string]string)
+		f.keyValues = make(KeyValues)
 	}
 	f.keyValues[k] = v
 }
@@ -43,7 +51,7 @@ func (f Frame) Format(s fmt.State, verb rune) {
 
 func trace(skip int) []Frame {
 	var trace []Frame
-	for _, c := range stack.Trace()[skip:] {
+	for _, c := range stack.Trace()[skip+1:] {
 		f := c.Frame()
 		trace = append(trace, Frame{
 			file: pkgFilePath(f.Function, f.File),
@@ -55,7 +63,7 @@ func trace(skip int) []Frame {
 }
 
 func call(skip int) (string, int) {
-	c := stack.Caller(skip)
+	c := stack.Caller(skip + 1)
 	f := c.Frame()
 	return pkgFilePath(f.Function, f.File), f.Line
 }
