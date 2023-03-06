@@ -8,8 +8,8 @@ import (
 
 // New creates a new error with a message and options.
 func New(msg string, opts ...fudge.Option) error {
-	errors := Error{stack: trace(2)}
-	frame := &errors.stack[0]
+	errors := Error{trace: trace(2)}
+	frame := &errors.trace[0]
 	frame.message = msg
 	for _, o := range opts {
 		o.Apply(frame)
@@ -33,9 +33,8 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 			o.Apply(frame)
 		}
 	} else {
-		errors = &Error{stack: trace(2)}
-		frame := &errors.stack[0]
-		frame.original = err
+		errors = &Error{original: err, trace: trace(2)}
+		frame := &errors.trace[0]
 		frame.message = msg
 		for _, o := range opts {
 			o.Apply(frame)
@@ -49,28 +48,28 @@ func findCallSite(e *Error) *Frame {
 	const skip int = 3
 
 	file, line := call(skip)
-	for i, f := range e.stack {
+	for i, f := range e.trace {
 		if f.file == file && f.line == line {
-			return &e.stack[i]
+			return &e.trace[i]
 		}
 	}
 
-	// the call site doesn't exist in the stack so we need to add it
+	// the call site doesn't exist in the trace so we need to add it
 	// by combining the traces
-	stack := trace(skip)
+	trace := trace(skip)
 outer:
-	for _, f := range stack {
-		for j, g := range e.stack {
+	for _, f := range trace {
+		for j, g := range e.trace {
 			if f.file == g.file && f.line == g.line {
-				e.stack = append(e.stack[:j], stack...)
+				e.trace = append(e.trace[:j], trace...)
 				break outer
 			}
 		}
 	}
 
-	for i, f := range e.stack {
+	for i, f := range e.trace {
 		if f.file == file && f.line == line {
-			return &e.stack[i]
+			return &e.trace[i]
 		}
 	}
 

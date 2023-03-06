@@ -9,8 +9,6 @@ import (
 
 // Frame is a single frame in a stack trace
 type Frame struct {
-	// original is the original non-Fudge error (can be nil)
-	original error
 	// message is the message associated with the frame (can be empty)
 	message string
 	// keyValues is a map of key-value pairs associated with the frame (can be nil)
@@ -37,9 +35,6 @@ func (f Frame) Format(s fmt.State, verb rune) {
 	fmt.Fprintf(s, "%s:%d", f.file, f.line)
 	if f.message != "" {
 		fmt.Fprintf(s, ": %s", f.message)
-	}
-	if f.original != nil {
-		fmt.Fprintf(s, ": %s", f.original.Error())
 	}
 	if len(f.keyValues) > 0 && (s.Flag(int('#')) || s.Flag(int('+'))) {
 		fmt.Fprintf(s, " {%v}", f.keyValues)

@@ -12,6 +12,16 @@ import (
 
 var digits = regexp.MustCompile(`(_\w+\.s)?:\d+`)
 
+var errTest = New("test error")
+
+type stringError struct {
+	msg string
+}
+
+func (e *stringError) Error() string {
+	return e.msg
+}
+
 func TestNew(t *testing.T) {
 	err := New("such test", fudge.KV("key", "value"), fudge.KV("this", "that"))
 	s := digits.ReplaceAllString(fmt.Sprintf("%+v", err), ":XXX")
@@ -50,9 +60,19 @@ func TestWrap(t *testing.T) {
 			errFn: func() error { return nil },
 		},
 		{
+			name:  "other",
+			errFn: func() error { return &stringError{msg: "such test"} },
+			exp: `such test
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: very wrap
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: and another
+testing/testing.go:XXX
+runtime/asm:XXX`,
+		},
+		{
 			name:  "std",
 			errFn: func() error { return io.EOF },
-			exp: `github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: very wrap: EOF
+			exp: `EOF
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: very wrap
 github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: and another
 testing/testing.go:XXX
 runtime/asm:XXX`,
@@ -92,12 +112,18 @@ runtime/asm:XXX`,
 	}
 }
 
-var errTest = New("test error")
-
 func TestIs(t *testing.T) {
 	err := Wrap(errTest, "it happened")
 	require.True(t, Is(err, errTest))
 	require.True(t, Is(errTest, errTest))
 	require.False(t, Is(errTest, New("test error")))
 	require.False(t, Is(errTest, nil))
+}
+
+func TestAs(t *testing.T) {
+	err := Wrap(errTest, "it happened")
+	t1 := new(Error)
+	require.True(t, As(err, &t1))
+	t2 := new(stringError)
+	require.False(t, As(err, &t2))
 }

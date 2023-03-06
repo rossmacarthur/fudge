@@ -6,7 +6,16 @@ import (
 
 // Error is a concrete error type containing a stack trace
 type Error struct {
-	stack []Frame
+	// original is the original non-Fudge error (can be nil)
+	original error
+	// trace is the stack trace
+	// contextual messages and key values are attached to individual stack frames
+	trace []Frame
+}
+
+// Unwrap implements the errors.Unwrap interface
+func (e *Error) Unwrap() error {
+	return e.original
 }
 
 func (e *Error) Error() string {
@@ -18,7 +27,10 @@ func (e *Error) String() string {
 }
 
 func (e Error) Format(s fmt.State, verb rune) {
-	for i, f := range e.stack {
+	if e.original != nil {
+		fmt.Fprintf(s, "%s\n", e.original.Error())
+	}
+	for i, f := range e.trace {
 		if i > 0 {
 			fmt.Fprint(s, "\n")
 		}
