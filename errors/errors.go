@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/rossmacarthur/fudge"
 )
@@ -51,7 +52,11 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 		// wrapping a Fudge error
 		errors = errors.Clone()
 		frame := findCallSite(errors, 1)
-		frame.message = msg
+		if frame.message == "" {
+			frame.message = msg
+		} else {
+			frame.message = fmt.Sprintf("%s: %s", msg, frame.message)
+		}
 		for _, o := range opts {
 			o.Apply(frame)
 		}
