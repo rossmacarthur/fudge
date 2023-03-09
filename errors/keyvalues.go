@@ -16,7 +16,7 @@ func (m *KeyValues) Clone() KeyValues {
 }
 
 func (m *KeyValues) String() string {
-	return fmt.Sprintf("%v", m)
+	return fmt.Sprintf("%s", m)
 }
 
 func (m KeyValues) Format(s fmt.State, verb rune) {

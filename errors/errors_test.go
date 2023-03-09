@@ -24,10 +24,13 @@ func (e *stringError) Error() string {
 }
 
 func TestNew(t *testing.T) {
-	err := New("such test", fudge.KV("key", "value"), fudge.KV("this", "that"))
+	err := New("such test",
+		fudge.KV("key", "value"),
+		fudge.KV("this", "that"),
+		fudge.MKV{"other": "thing"})
 	s := digits.ReplaceAllString(fmt.Sprintf("%#v", err), ":XXX")
 	require.Equal(t,
-		"github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: such test {key:value, this:that}\n"+
+		"github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: such test {key:value, other:thing, this:that}\n"+
 			"testing/testing.go:XXX\n"+
 			"runtime/asm:XXX", s)
 }
