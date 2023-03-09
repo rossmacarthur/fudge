@@ -29,6 +29,23 @@ func (e *Error) Clone() *Error {
 	return &c
 }
 
+// Is implements the errors.Is interface
+//
+// A Fudge error is the same as another if they have the same error code. This
+// means that you can only compare to a sentinel error.
+func (e *Error) Is(target error) bool {
+	t, ok := target.(*Error)
+	if !ok {
+		return false // errors.Is will Unwrap and compare to original
+	}
+
+	if e.code != "" {
+		return e.code == t.code
+	}
+
+	return e == t
+}
+
 // Unwrap implements the errors.Unwrap interface
 func (e *Error) Unwrap() error {
 	return e.original

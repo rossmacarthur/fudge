@@ -2,9 +2,8 @@ package errors
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
-
-	"github.com/go-stack/stack"
 )
 
 // Frame is a single frame in a stack trace
@@ -55,22 +54,28 @@ func (f Frame) Format(s fmt.State, verb rune) {
 }
 
 func trace(skip int) []Frame {
-	var trace []Frame
-	for _, c := range stack.Trace()[skip+1:] {
-		f := c.Frame()
+	var pcs [512]uintptr
+	n := runtime.Callers(skip+1, pcs[:])
+	frames := runtime.CallersFrames(pcs[:n])
+	trace := make([]Frame, 0, n)
+	frame, more := frames.Next()
+	for more {
+		frame, more = frames.Next()
 		trace = append(trace, Frame{
-			file: pkgFilePath(f.Function, f.File),
-			line: f.Line,
+			file: pkgFilePath(frame.Function, frame.File),
+			line: frame.Line,
 		})
 	}
-
 	return trace
 }
 
 func call(skip int) (string, int) {
-	c := stack.Caller(skip + 1)
-	f := c.Frame()
-	return pkgFilePath(f.Function, f.File), f.Line
+	var pcs [3]uintptr
+	n := runtime.Callers(skip+1, pcs[:])
+	frames := runtime.CallersFrames(pcs[:n])
+	frame, _ := frames.Next()
+	frame, _ = frames.Next()
+	return pkgFilePath(frame.Function, frame.File), frame.Line
 }
 
 func pkgFilePath(function, file string) string {

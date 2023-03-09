@@ -13,7 +13,7 @@ import (
 
 var digits = regexp.MustCompile(`(_\w+\.s)?:\d+`)
 
-var errTest = New("test error")
+var sentinelTest = NewSentinel("test error", "TEST1234")
 
 type stringError struct {
 	msg string
@@ -141,15 +141,41 @@ runtime/asm:XXX`,
 }
 
 func TestIs(t *testing.T) {
-	err := Wrap(errTest, "it happened")
-	require.True(t, Is(err, errTest))
+	// local
+	errTest := New("test error")
 	require.True(t, Is(errTest, errTest))
 	require.False(t, Is(errTest, New("test error")))
 	require.False(t, Is(errTest, nil))
+	require.False(t, Is(errTest, nil))
+
+	// sentinel
+	require.True(t, Is(sentinelTest, sentinelTest))
+	require.False(t, Is(sentinelTest, New("test error")))
+	require.False(t, Is(sentinelTest, nil))
+	require.False(t, Is(sentinelTest, nil))
+
+	// wrapped
+	err := Wrap(sentinelTest, "very wrap")
+	require.True(t, Is(err, sentinelTest))
+	require.False(t, Is(err, New("test error")))
+	require.False(t, Is(err, nil))
+
+	// wrapped twice
+	err = Wrap(Wrap(sentinelTest, "very wrap"), "it happened")
+	require.True(t, Is(err, sentinelTest))
+	require.False(t, Is(sentinelTest, New("test error")))
+	require.False(t, Is(sentinelTest, nil))
+
+	// wrapped non-Fudge
+	err = Wrap(io.EOF, "very wrap")
+	require.True(t, Is(err, io.EOF))
+	require.False(t, Is(err, sentinelTest))
+	require.False(t, Is(sentinelTest, New("EOF")))
+	require.False(t, Is(err, nil))
 }
 
 func TestAs(t *testing.T) {
-	err := Wrap(errTest, "it happened")
+	err := Wrap(sentinelTest, "it happened")
 	t1 := new(Error)
 	require.True(t, As(err, &t1))
 	t2 := new(stringError)
