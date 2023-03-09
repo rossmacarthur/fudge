@@ -72,7 +72,6 @@ func TestErrorAndString(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			require.Equal(t, tc.exp, tc.err.Error())
-			require.Equal(t, tc.exp, tc.err.(*Error).String())
 		})
 	}
 }

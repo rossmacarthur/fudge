@@ -8,48 +8,44 @@ import (
 
 // Frame is a single frame in a stack trace
 type Frame struct {
-	// message is the message associated with the frame (can be empty)
-	message string
-	// keyValues is a map of key-value pairs associated with the frame (can be nil)
-	keyValues KeyValues
-	// file is the file name of the frame
-	file string
-	// line is the line number of the frame
-	line int
+	// Message is the message associated with the frame (can be empty)
+	Message string
+	// KeyValues is a map of key-value pairs associated with the frame (can be nil)
+	KeyValues KeyValues
+	// File is the file name associated with the frame
+	File string
+	// Line is the fine number associated with the frame
+	Line int
 }
 
-func (f *Frame) Clone() *Frame {
+func (f *Frame) clone() *Frame {
 	c := *f
-	if f.keyValues != nil {
-		c.keyValues = f.keyValues.Clone()
+	if f.KeyValues != nil {
+		c.KeyValues = f.KeyValues.clone()
 	}
 	return &c
 }
 
 // SetKeyValue implements the fudge.apply interface
 func (f *Frame) SetKeyValue(k, v string) {
-	if f.keyValues == nil {
-		f.keyValues = make(KeyValues)
+	if f.KeyValues == nil {
+		f.KeyValues = make(KeyValues)
 	}
-	f.keyValues[k] = v
-}
-
-func (f *Frame) String() string {
-	return fmt.Sprintf("%s", f)
+	f.KeyValues[k] = v
 }
 
 func (f Frame) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
-		fmt.Fprintf(s, "%s:%d", f.file, f.line)
-		if f.message != "" {
-			fmt.Fprintf(s, ": %s", f.message)
+		fmt.Fprintf(s, "%s:%d", f.File, f.Line)
+		if f.Message != "" {
+			fmt.Fprintf(s, ": %s", f.Message)
 		}
-		if len(f.keyValues) > 0 && s.Flag(int('#')) {
-			fmt.Fprintf(s, " {%v}", f.keyValues)
+		if len(f.KeyValues) > 0 && s.Flag(int('#')) {
+			fmt.Fprintf(s, " {%v}", f.KeyValues)
 		}
 	default:
-		fmt.Fprintf(s, "%%!%c(Frame=%s:%d)", verb, f.file, f.line)
+		fmt.Fprintf(s, "%%!%c(Frame=%s:%d)", verb, f.File, f.Line)
 	}
 }
 
@@ -62,8 +58,8 @@ func trace(skip int) []Frame {
 	for more {
 		frame, more = frames.Next()
 		trace = append(trace, Frame{
-			file: pkgFilePath(frame.Function, frame.File),
-			line: frame.Line,
+			File: pkgFilePath(frame.Function, frame.File),
+			Line: frame.Line,
 		})
 	}
 	return trace

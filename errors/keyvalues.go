@@ -7,16 +7,12 @@ import (
 
 type KeyValues map[string]string
 
-func (m *KeyValues) Clone() KeyValues {
+func (m *KeyValues) clone() KeyValues {
 	clone := make(KeyValues, len(*m))
 	for k, v := range *m {
 		clone[k] = v
 	}
 	return clone
-}
-
-func (m *KeyValues) String() string {
-	return fmt.Sprintf("%s", m)
 }
 
 func (m KeyValues) Format(s fmt.State, verb rune) {

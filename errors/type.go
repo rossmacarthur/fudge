@@ -7,24 +7,30 @@ import (
 
 // Error is a concrete error type containing a stack trace
 type Error struct {
-	// message is the optional sentinel message (can be empty)
-	message string
-	// code is the optional sentinel error code (can be empty)
-	code string
-	// original is the original non-Fudge error (can be nil)
-	original error
-	// trace is the stack trace
+	// Message is the optional sentinel message (can be empty)
+	Message string
+	// Code is the optional sentinel error code (can be empty)
+	Code string
+	// Original is the original non-Fudge error (can be nil)
+	Original error
+	// Trace is the stack trace
 	//
 	// contextual messages and key values are attached to individual stack frames
-	trace []Frame
+	Trace []Frame
 }
 
-// Clone deep copies the error
-func (e *Error) Clone() *Error {
+// Unwrap implements the errors.Unwrap interface and returns the original
+// error if possible
+func (e *Error) Unwrap() error {
+	return e.Original
+}
+
+// clone deep copies the error
+func (e *Error) clone() *Error {
 	c := *e
-	c.trace = make([]Frame, 0, len(e.trace))
-	for _, f := range e.trace {
-		c.trace = append(c.trace, *f.Clone())
+	c.Trace = make([]Frame, 0, len(e.Trace))
+	for _, f := range e.Trace {
+		c.Trace = append(c.Trace, *f.clone())
 	}
 	return &c
 }
@@ -39,23 +45,14 @@ func (e *Error) Is(target error) bool {
 		return false // errors.Is will Unwrap and compare to original
 	}
 
-	if e.code != "" {
-		return e.code == t.code
+	if e.Code != "" {
+		return e.Code == t.Code
 	}
 
 	return e == t
 }
 
-// Unwrap implements the errors.Unwrap interface
-func (e *Error) Unwrap() error {
-	return e.original
-}
-
 func (e *Error) Error() string {
-	return e.String()
-}
-
-func (e *Error) String() string {
 	return fmt.Sprintf("%s", e)
 }
 
@@ -70,34 +67,34 @@ func (e *Error) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
 		if s.Flag(int('+')) || s.Flag(int('#')) {
-			if e.message != "" {
-				fmt.Fprintf(s, "%s (%s)", e.message, e.code)
-				if len(e.trace) > 0 {
+			if e.Message != "" {
+				fmt.Fprintf(s, "%s (%s)", e.Message, e.Code)
+				if len(e.Trace) > 0 {
 					fmt.Fprint(s, "\n")
 				}
 			}
-			if e.original != nil {
-				fmt.Fprintf(s, "%s", e.original.Error())
-				if len(e.trace) > 0 {
+			if e.Original != nil {
+				fmt.Fprintf(s, "%s", e.Original.Error())
+				if len(e.Trace) > 0 {
 					fmt.Fprint(s, "\n")
 				}
 			}
-			for i, f := range e.trace {
+			for i, f := range e.Trace {
 				if i > 0 {
 					fmt.Fprint(s, "\n")
 				}
 				f.Format(s, verb) // Note: behaviour is different for + and # flags
 			}
 		} else {
-			fmt.Fprintf(s, "%s", e.Message())
+			fmt.Fprintf(s, "%s", e.fullMessage())
 		}
 	default:
-		fmt.Fprintf(s, "%%!%c(*errors.Error=%s)", verb, e.Message())
+		fmt.Fprintf(s, "%%!%c(*errors.Error=%s)", verb, e.fullMessage())
 	}
 }
 
-// Message returns the full error message
-func (e *Error) Message() string {
+// fullMessage returns the full error message
+func (e *Error) fullMessage() string {
 	var s strings.Builder
 
 	write := func(m string) {
@@ -107,21 +104,21 @@ func (e *Error) Message() string {
 		s.WriteString(m)
 	}
 
-	for i := len(e.trace) - 1; i >= 0; i-- {
-		m := e.trace[i].message
+	for i := len(e.Trace) - 1; i >= 0; i-- {
+		m := e.Trace[i].Message
 		if m != "" {
 			write(m)
 		}
 	}
 
-	if e.message != "" {
-		write(e.message)
+	if e.Message != "" {
+		write(e.Message)
 		s.WriteString(" (")
-		s.WriteString(e.code)
+		s.WriteString(e.Code)
 		s.WriteString(")")
 	}
-	if e.original != nil {
-		write(e.original.Error())
+	if e.Original != nil {
+		write(e.Original.Error())
 	}
 
 	return s.String()

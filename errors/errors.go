@@ -12,9 +12,9 @@ import (
 // This method is intended to be used to define local errors. A stack trace is
 // is attached to the error.
 func New(msg string, opts ...fudge.Option) error {
-	errors := Error{trace: trace(1)}
-	frame := &errors.trace[0]
-	frame.message = msg
+	errors := Error{Trace: trace(1)}
+	frame := &errors.Trace[0]
+	frame.Message = msg
 	for _, o := range opts {
 		o.Apply(frame)
 	}
@@ -24,38 +24,43 @@ func New(msg string, opts ...fudge.Option) error {
 // NewSentinel creates a new sentinel error with a message and code.
 //
 // This method is intended to be used to define global sentinel errors. No
-// stack trace is attached until these errors are wrapped.
+// stack trace is attached until these errors are wrapped with Wrap.
 func NewSentinel(msg string, code string) error {
-	return &Error{message: msg, code: code}
+	return &Error{Message: msg, Code: code}
 }
 
-// Wrap wraps an existing error with a new message and options.
+// Wrap wraps an existing error with a new message and options and the
+// underlying cause of the error will remain unchanged.
 //
-// This method consumes the original error, so it should not be used afterward.
+// If the error is a
+//   - sentinel Fudge error then it is cloned and a stack trace is added.
+//   - inline Fudge error then the stack trace is extended and/or annotated
+//   - non-Fudge error it is converted to a Fudge error and a trace back is
+//     added and the original error is available via the Unwrap method.
 func Wrap(err error, msg string, opts ...fudge.Option) error {
 	if err == nil {
 		return nil
 	}
 
 	errors, ok := err.(*Error)
-	if ok && errors.trace == nil {
+	if ok && errors.Trace == nil {
 		// wrapping a sentinel Fudge error
-		errors = errors.Clone()
-		errors.trace = trace(1)
-		frame := &errors.trace[0]
-		frame.message = msg
+		errors = errors.clone()
+		errors.Trace = trace(1)
+		frame := &errors.Trace[0]
+		frame.Message = msg
 		for _, o := range opts {
 			o.Apply(frame)
 		}
 
 	} else if ok {
 		// wrapping a Fudge error
-		errors = errors.Clone()
+		errors = errors.clone()
 		frame := findCallSite(errors, 1)
-		if frame.message == "" {
-			frame.message = msg
+		if frame.Message == "" {
+			frame.Message = msg
 		} else {
-			frame.message = fmt.Sprintf("%s: %s", msg, frame.message)
+			frame.Message = fmt.Sprintf("%s: %s", msg, frame.Message)
 		}
 		for _, o := range opts {
 			o.Apply(frame)
@@ -63,9 +68,9 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 
 	} else {
 		// wrapping a non-Fudge error
-		errors = &Error{original: err, trace: trace(1)}
-		frame := &errors.trace[0]
-		frame.message = msg
+		errors = &Error{Original: err, Trace: trace(1)}
+		frame := &errors.Trace[0]
+		frame.Message = msg
 		for _, o := range opts {
 			o.Apply(frame)
 		}
@@ -76,9 +81,9 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 
 func findCallSite(e *Error, skip int) *Frame {
 	file, line := call(skip + 1)
-	for i, f := range e.trace {
-		if f.file == file && f.line == line {
-			return &e.trace[i]
+	for i, f := range e.Trace {
+		if f.File == file && f.Line == line {
+			return &e.Trace[i]
 		}
 	}
 
@@ -87,17 +92,17 @@ func findCallSite(e *Error, skip int) *Frame {
 	trace := trace(skip + 1)
 outer:
 	for _, f := range trace {
-		for j, g := range e.trace {
-			if f.file == g.file && f.line == g.line {
-				e.trace = append(e.trace[:j], trace...)
+		for j, g := range e.Trace {
+			if f.File == g.File && f.Line == g.Line {
+				e.Trace = append(e.Trace[:j], trace...)
 				break outer
 			}
 		}
 	}
 
-	for i, f := range e.trace {
-		if f.file == file && f.line == line {
-			return &e.trace[i]
+	for i, f := range e.Trace {
+		if f.File == file && f.Line == line {
+			return &e.Trace[i]
 		}
 	}
 
