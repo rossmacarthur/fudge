@@ -175,9 +175,30 @@ func TestIs(t *testing.T) {
 }
 
 func TestAs(t *testing.T) {
-	err := Wrap(sentinelTest, "it happened")
-	t1 := new(Error)
-	require.True(t, As(err, &t1))
-	t2 := new(stringError)
-	require.False(t, As(err, &t2))
+	te := new(Error)
+	ts := new(stringError)
+
+	// local
+	errTest := New("test error")
+	require.True(t, As(errTest, &te))
+	require.False(t, As(errTest, &ts))
+
+	// sentinel
+	require.True(t, As(sentinelTest, &te))
+	require.False(t, As(sentinelTest, &ts))
+
+	// wrapped
+	err := Wrap(sentinelTest, "very wrap")
+	require.True(t, As(err, &te))
+	require.False(t, As(err, &ts))
+
+	// wrapped twice
+	err = Wrap(Wrap(sentinelTest, "very wrap"), "it happened")
+	require.True(t, As(err, &te))
+	require.False(t, As(err, &ts))
+
+	// wrapped non-Fudge
+	var serr error = &stringError{msg: "test error"}
+	require.True(t, As(serr, &ts))
+	require.False(t, As(serr, &te))
 }
