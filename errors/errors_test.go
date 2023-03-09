@@ -32,6 +32,12 @@ func TestNew(t *testing.T) {
 			"runtime/asm:XXX", s)
 }
 
+func TestSentinel(t *testing.T) {
+	err := NewSentinel("such test", "TEST1234")
+	s := digits.ReplaceAllString(fmt.Sprintf("%#v", err), ":XXX")
+	require.Equal(t, "such test (TEST1234)", s)
+}
+
 func TestErrorAndString(t *testing.T) {
 	tests := []struct {
 		name string

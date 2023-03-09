@@ -71,10 +71,16 @@ func (e *Error) Format(s fmt.State, verb rune) {
 	case 'v', 's':
 		if s.Flag(int('+')) || s.Flag(int('#')) {
 			if e.message != "" {
-				fmt.Fprintf(s, "%s (%s)\n", e.message, e.code)
+				fmt.Fprintf(s, "%s (%s)", e.message, e.code)
+				if len(e.trace) > 0 {
+					fmt.Fprint(s, "\n")
+				}
 			}
 			if e.original != nil {
-				fmt.Fprintf(s, "%s\n", e.original.Error())
+				fmt.Fprintf(s, "%s", e.original.Error())
+				if len(e.trace) > 0 {
+					fmt.Fprint(s, "\n")
+				}
 			}
 			for i, f := range e.trace {
 				if i > 0 {
