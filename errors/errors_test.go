@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/rossmacarthur/fudge"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,29 +25,47 @@ func (e *stringError) Error() string {
 
 func TestNew(t *testing.T) {
 	err := New("such test", fudge.KV("key", "value"), fudge.KV("this", "that"))
-	s := digits.ReplaceAllString(fmt.Sprintf("%+v", err), ":XXX")
+	s := digits.ReplaceAllString(fmt.Sprintf("%#v", err), ":XXX")
 	require.Equal(t,
 		"github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: such test {key:value, this:that}\n"+
 			"testing/testing.go:XXX\n"+
 			"runtime/asm:XXX", s)
 }
 
-func TestError(t *testing.T) {
-	err := New("such test")
-	s := digits.ReplaceAllString(err.Error(), ":XXX")
-	require.Equal(t,
-		"github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: such test\n"+
-			"testing/testing.go:XXX\n"+
-			"runtime/asm:XXX", s)
-}
+func TestErrorAndString(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		exp  string
+	}{
+		{
+			name: "basic",
+			err:  New("such test"),
+			exp:  "such test",
+		},
+		{
+			name: "wrapped",
+			err:  Wrap(New("such test"), "very wrap"),
+			exp:  "very wrap: such test",
+		},
+		{
+			name: "wrapped twice",
+			err:  Wrap(Wrap(New("such test"), "very wrap"), "and another"),
+			exp:  "and another: very wrap: such test",
+		},
+		{
+			name: "wrapped non-Fudge",
+			err:  Wrap(io.ErrClosedPipe, "very wrap"),
+			exp:  "very wrap: io: read/write on closed pipe",
+		},
+	}
 
-func TestString(t *testing.T) {
-	err := New("such test")
-	s := digits.ReplaceAllString(err.(*Error).String(), ":XXX")
-	require.Equal(t,
-		"github.com/rossmacarthur/fudge/errors/errors_test.go:XXX: such test\n"+
-			"testing/testing.go:XXX\n"+
-			"runtime/asm:XXX", s)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.exp, tc.err.Error())
+			require.Equal(t, tc.exp, tc.err.(*Error).String())
+		})
+	}
 }
 
 func TestWrap(t *testing.T) {
@@ -114,7 +133,7 @@ runtime/asm:XXX`,
 			if err2 == nil {
 				require.Equal(t, tc.exp, "")
 			} else {
-				s := digits.ReplaceAllString(err2.Error(), ":XXX")
+				s := digits.ReplaceAllString(fmt.Sprintf("%+v", err2), ":XXX")
 				require.Equal(t, tc.exp, s)
 			}
 		})

@@ -36,16 +36,21 @@ func (f *Frame) SetKeyValue(k, v string) {
 }
 
 func (f *Frame) String() string {
-	return fmt.Sprintf("%v", f)
+	return fmt.Sprintf("%s", f)
 }
 
 func (f Frame) Format(s fmt.State, verb rune) {
-	fmt.Fprintf(s, "%s:%d", f.file, f.line)
-	if f.message != "" {
-		fmt.Fprintf(s, ": %s", f.message)
-	}
-	if len(f.keyValues) > 0 && (s.Flag(int('#')) || s.Flag(int('+'))) {
-		fmt.Fprintf(s, " {%v}", f.keyValues)
+	switch verb {
+	case 'v', 's':
+		fmt.Fprintf(s, "%s:%d", f.file, f.line)
+		if f.message != "" {
+			fmt.Fprintf(s, ": %s", f.message)
+		}
+		if len(f.keyValues) > 0 && s.Flag(int('#')) {
+			fmt.Fprintf(s, " {%v}", f.keyValues)
+		}
+	default:
+		fmt.Fprintf(s, "%%!%c(Frame=%s:%d)", verb, f.file, f.line)
 	}
 }
 

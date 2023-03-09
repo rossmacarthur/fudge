@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Error is a concrete error type containing a stack trace
@@ -13,6 +14,7 @@ type Error struct {
 	// original is the original non-Fudge error (can be nil)
 	original error
 	// trace is the stack trace
+	//
 	// contextual messages and key values are attached to individual stack frames
 	trace []Frame
 }
@@ -37,20 +39,67 @@ func (e *Error) Error() string {
 }
 
 func (e *Error) String() string {
-	return fmt.Sprintf("%v", e)
+	return fmt.Sprintf("%s", e)
 }
 
-func (e Error) Format(s fmt.State, verb rune) {
+// Format implements the fmt.Formatter interface
+//
+// The following verbs are supported:
+//
+//	%v, %s: print the wrapping messages and error message
+//	%+v, %+s: print the error message and stack trace with wrapping messages
+//	%#v, %#s: print the error message and stack trace with wrapping messages and key values
+func (e *Error) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v', 's':
+		if s.Flag(int('+')) || s.Flag(int('#')) {
+			if e.message != "" {
+				fmt.Fprintf(s, "%s (%s)\n", e.message, e.code)
+			}
+			if e.original != nil {
+				fmt.Fprintf(s, "%s\n", e.original.Error())
+			}
+			for i, f := range e.trace {
+				if i > 0 {
+					fmt.Fprint(s, "\n")
+				}
+				f.Format(s, verb) // Note: behaviour is different for + and # flags
+			}
+		} else {
+			fmt.Fprintf(s, "%s", e.Message())
+		}
+	default:
+		fmt.Fprintf(s, "%%!%c(*errors.Error=%s)", verb, e.Message())
+	}
+}
+
+// Message returns the full error message
+func (e *Error) Message() string {
+	var s strings.Builder
+
+	write := func(m string) {
+		if s.Len() > 0 {
+			s.WriteString(": ")
+		}
+		s.WriteString(m)
+	}
+
+	for i := len(e.trace) - 1; i >= 0; i-- {
+		m := e.trace[i].message
+		if m != "" {
+			write(m)
+		}
+	}
+
 	if e.message != "" {
-		fmt.Fprintf(s, "%s (%s)\n", e.message, e.code)
+		write(e.message)
+		s.WriteString(" (")
+		s.WriteString(e.code)
+		s.WriteString(")")
 	}
 	if e.original != nil {
-		fmt.Fprintf(s, "%s\n", e.original.Error())
+		write(e.original.Error())
 	}
-	for i, f := range e.trace {
-		if i > 0 {
-			fmt.Fprint(s, "\n")
-		}
-		f.Format(s, verb)
-	}
+
+	return s.String()
 }
