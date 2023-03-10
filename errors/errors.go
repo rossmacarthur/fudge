@@ -9,10 +9,15 @@ import (
 
 // New creates a new error with a message and options.
 //
-// This method is intended to be used to define local errors. A stack trace is
-// is attached to the error.
+// If used in the global scope no stack trace will be attached until the error
+// is wrapped with Wrap.
 func New(msg string, opts ...fudge.Option) error {
-	errors := Error{Trace: trace(1)}
+	trace := trace(1)
+	if call(2).Function == "runtime.doInit" {
+		return &Error{Message: msg}
+	}
+
+	errors := Error{Trace: trace}
 	frame := &errors.Trace[0]
 	frame.Message = msg
 	for _, o := range opts {
@@ -80,9 +85,10 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 }
 
 func findCallSite(e *Error, skip int) *Frame {
-	file, line := call(skip + 1)
+	c := call(skip + 1)
+
 	for i, f := range e.Trace {
-		if f.File == file && f.Line == line {
+		if f.File == c.File && f.Function == c.Function && f.Line == c.Line {
 			return &e.Trace[i]
 		}
 	}
@@ -93,7 +99,7 @@ func findCallSite(e *Error, skip int) *Frame {
 outer:
 	for _, f := range trace {
 		for j, g := range e.Trace {
-			if f.File == g.File && f.Line == g.Line {
+			if f.File == g.File && f.Function == g.Function && f.Line == g.Line {
 				e.Trace = append(e.Trace[:j], trace...)
 				break outer
 			}
@@ -101,7 +107,7 @@ outer:
 	}
 
 	for i, f := range e.Trace {
-		if f.File == file && f.Line == line {
+		if f.File == c.File && f.Function == c.Function && f.Line == c.Line {
 			return &e.Trace[i]
 		}
 	}

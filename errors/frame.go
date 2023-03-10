@@ -2,8 +2,8 @@ package errors
 
 import (
 	"fmt"
-	"runtime"
-	"strings"
+
+	"github.com/rossmacarthur/fudge/stack"
 )
 
 // Frame is a single frame in a stack trace
@@ -14,6 +14,8 @@ type Frame struct {
 	KeyValues KeyValues
 	// File is the file name associated with the frame
 	File string
+	// function is the function name associated with the frame
+	Function string
 	// Line is the fine number associated with the frame
 	Line int
 }
@@ -37,7 +39,7 @@ func (f *Frame) SetKeyValue(k, v string) {
 func (f Frame) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
-		fmt.Fprintf(s, "%s:%d", f.File, f.Line)
+		fmt.Fprintf(s, "%s:%d %s", f.File, f.Line, f.Function)
 		if f.Message != "" {
 			fmt.Fprintf(s, ": %s", f.Message)
 		}
@@ -50,47 +52,22 @@ func (f Frame) Format(s fmt.State, verb rune) {
 }
 
 func trace(skip int) []Frame {
-	var pcs [512]uintptr
-	n := runtime.Callers(skip+1, pcs[:])
-	frames := runtime.CallersFrames(pcs[:n])
-	trace := make([]Frame, 0, n)
-	frame, more := frames.Next()
-	for more {
-		frame, more = frames.Next()
+	var trace []Frame
+	for _, f := range stack.Trace(skip + 1) {
 		trace = append(trace, Frame{
-			File: pkgFilePath(frame.Function, frame.File),
-			Line: frame.Line,
+			File:     f.File,
+			Function: f.Function,
+			Line:     f.Line,
 		})
 	}
 	return trace
 }
 
-func call(skip int) (string, int) {
-	var pcs [3]uintptr
-	n := runtime.Callers(skip+1, pcs[:])
-	frames := runtime.CallersFrames(pcs[:n])
-	frame, _ := frames.Next()
-	frame, _ = frames.Next()
-	return pkgFilePath(frame.Function, frame.File), frame.Line
-}
-
-func pkgFilePath(function, file string) string {
-	const pathSep = "/"
-
-	var pre, post string
-
-	lastSep := strings.LastIndex(file, pathSep)
-	if lastSep == -1 {
-		post = file
-	} else {
-		post = file[strings.LastIndex(file[:lastSep], pathSep)+1:]
+func call(skip int) Frame {
+	f := stack.Call(skip + 1)
+	return Frame{
+		File:     f.File,
+		Function: f.Function,
+		Line:     f.Line,
 	}
-
-	end := strings.LastIndex(function, pathSep)
-	if end == -1 {
-		return post
-	}
-	pre = function[:end]
-
-	return pre + pathSep + post
 }

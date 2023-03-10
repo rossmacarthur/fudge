@@ -41,11 +41,11 @@ Multiple key value pairs are also possible.
 errors.New("failed to shave yak", fudge.MKV{"yak_id": yakID, "hair_len": hairLen})
 ```
 
-Sentinel errors are defined using `NewSentinel` which requires a unique code for
-the error and does not attach a stack trace.
+Sentinel errors are defined in the global scope and do not get a stack trace
+attached until they are wrapped with Wrap.
 
 ```go
-var ErrShavingFailed = errors.NewSentinel("failed to shave yak", "ERR_12345678")
+var ErrShavingFailed = errors.New("failed to shave yak")
 ```
 
 ### Annotation
@@ -65,11 +65,11 @@ if err != nil {
 }
 ```
 
-Sentinel errors must must be wrapped when used so that they get a stack trace.
-Errors can be compared to sentinel errors using `errors.Is`.
+Sentinel errors must be wrapped when used so that they get a stack trace. Errors
+can be compared to sentinel errors using `errors.Is`.
 
 ```go
-var ErrRazorNotFound = errors.NewSentinel("razor not found", "ERR_12345678")
+var ErrRazorNotFound = errors.New("razor not found")
 
 func locateRazor() error {
     return errors.Wrap(ErrRazorNotFound, "", fudge.KV("hair_len", hairLen))
@@ -88,7 +88,7 @@ if errors.Is(err, ErrRazorNotFound) {
 For example given the following.
 
 ```go
-var ErrRazorNotFound = errors.NewSentinel("razor not found", "ERR_12345678")
+var ErrRazorNotFound = errors.New("razor not found")
 
 func locateRazor() error {
     return errors.Wrap(ErrRazorNotFound, "", fudge.KV("hair_len", hairLen))

@@ -68,7 +68,10 @@ func (e *Error) Format(s fmt.State, verb rune) {
 	case 'v', 's':
 		if s.Flag(int('+')) || s.Flag(int('#')) {
 			if e.Message != "" {
-				fmt.Fprintf(s, "%s (%s)", e.Message, e.Code)
+				fmt.Fprintf(s, "%s", e.Message)
+				if e.Code != "" {
+					fmt.Fprintf(s, " (%s)", e.Code)
+				}
 				if len(e.Trace) > 0 {
 					fmt.Fprint(s, "\n")
 				}
@@ -113,9 +116,11 @@ func (e *Error) fullMessage() string {
 
 	if e.Message != "" {
 		write(e.Message)
-		s.WriteString(" (")
-		s.WriteString(e.Code)
-		s.WriteString(")")
+		if e.Code != "" {
+			s.WriteString(" (")
+			s.WriteString(e.Code)
+			s.WriteString(")")
+		}
 	}
 	if e.Original != nil {
 		write(e.Original.Error())
