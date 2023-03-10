@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package fudge;
+
+option go_package = "github.com/rossmacarthur/fudge/internal/fudgepb";
+
+message Error {
+    repeated Hop hops = 1;
+}
+
+message Hop {
+    string binary = 1;
+    string message = 2;
+    string code = 3;
+    repeated Frame trace = 4;
+}
+
+message Frame {
+    string file = 1;
+    string function = 2;
+    int32 line = 3;
+    string message = 4;
+    repeated KeyValue key_values = 5;
+}
+
+message KeyValue {
+    string key = 1;
+    string value = 2;
+}

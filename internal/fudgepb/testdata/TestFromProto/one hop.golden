@@ -1,0 +1,4 @@
+such test
+github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go:24 TestFromProto
+testing/testing.go:1576 tRunner
+runtime/asm_arm64.s:1172 goexit

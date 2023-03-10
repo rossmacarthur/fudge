@@ -1,0 +1,31 @@
+{
+  "hops":  [
+    {
+      "message":  "such test",
+      "code":  "TEST1234",
+      "trace":  [
+        {
+          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function":  "TestToProto.func6",
+          "line":  163,
+          "message":  "very wrap"
+        },
+        {
+          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function":  "TestToProto.func8",
+          "line":  182
+        },
+        {
+          "file":  "testing/testing.go",
+          "function":  "tRunner",
+          "line":  1576
+        },
+        {
+          "file":  "runtime/asm_arm64.s",
+          "function":  "goexit",
+          "line":  1172
+        }
+      ]
+    }
+  ]
+}
