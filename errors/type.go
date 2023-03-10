@@ -2,11 +2,15 @@ package errors
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
 // Error is a concrete error type containing a stack trace
 type Error struct {
+	// Binary is the name of the executable the error occurred in
+	Binary string
 	// Message is the optional sentinel message (can be empty)
 	Message string
 	// Code is the optional sentinel error code (can be empty)
@@ -131,4 +135,8 @@ func (e *Error) fullKeyValues() KeyValues {
 		}
 	}
 	return kvs
+}
+
+func binary() string {
+	return filepath.Base(os.Args[0])
 }

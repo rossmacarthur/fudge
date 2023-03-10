@@ -8,16 +8,16 @@ import (
 
 // Frame is a single frame in a stack trace
 type Frame struct {
-	// Message is the message associated with the frame (can be empty)
-	Message string
-	// KeyValues is a map of key-value pairs associated with the frame (can be nil)
-	KeyValues KeyValues
 	// File is the file name associated with the frame
 	File string
 	// function is the function name associated with the frame
 	Function string
 	// Line is the fine number associated with the frame
 	Line int
+	// Message is the message associated with the frame (can be empty)
+	Message string
+	// KeyValues is a map of key-value pairs associated with the frame (can be nil)
+	KeyValues KeyValues
 }
 
 func (f *Frame) clone() *Frame {

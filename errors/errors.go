@@ -16,10 +16,10 @@ func New(msg string, opts ...fudge.Option) error {
 
 	c := call(2)
 	if c.File == "runtime/proc.go" && c.Function == "doInit" {
-		return &Error{Message: msg}
+		return &Error{Binary: binary(), Message: msg}
 	}
 
-	errors := Error{Trace: trace}
+	errors := Error{Binary: binary(), Trace: trace}
 	frame := &errors.Trace[0]
 	frame.Message = msg
 	for _, o := range opts {
@@ -75,7 +75,7 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 
 	} else {
 		// wrapping a non-Fudge error
-		errors = &Error{Original: err, Trace: trace(1)}
+		errors = &Error{Binary: binary(), Original: err, Trace: trace(1)}
 		frame := &errors.Trace[0]
 		frame.Message = msg
 		for _, o := range opts {
