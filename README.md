@@ -104,33 +104,33 @@ By default `.Error()` output will return a colon (`: `) separated list of
 contextual messages like this:
 
 ```
-failed to shave yak: razor not found (ERR_12345678)
+failed to shave yak: razor not found
 ```
 
 If formatted using `fmt.Sprintf("%+v", err)` the stack trace will be shown with
 any added contextual messages.
 
 ```text
-razor not found (ERR_12345678)
-example/main.go:28
-example/main.go:20
-example/main.go:22: failed to shave yak
-example/main.go:13
-runtime/proc.go:250
-runtime/asm_arm64.s:1172
+failed to shave yak: razor not found
+example/main.go:20 locateRazor
+example/main.go:24 example
+example/main.go:26 example
+example/main.go:13 main
+runtime/proc.go:250 main
+runtime/asm_arm64.s:1172 goexit
 ```
 
 If formatted using `fmt.Sprintf("%#v", err)` then the key value pairs will also
 be added.
 
 ```text
-razor not found (ERR_12345678)
-example/main.go:28 {hair_len:1337}
-example/main.go:20
-example/main.go:22: failed to shave yak {yak_id:1234}
-example/main.go:13
-runtime/proc.go:250
-runtime/asm_arm64.s:1172
+failed to shave yak: razor not found {hair_len:7, yak_id:1337}
+example/main.go:20 locateRazor
+example/main.go:24 example
+example/main.go:26 example
+example/main.go:13 main
+runtime/proc.go:250 main
+runtime/asm_arm64.s:1172 goexit
 ```
 
 Custom formatting is possible. For example:
