@@ -3,7 +3,7 @@ package errors
 import (
 	"fmt"
 
-	"github.com/rossmacarthur/fudge/stack"
+	"github.com/rossmacarthur/fudge/internal/stack"
 )
 
 // Frame is a single frame in a stack trace
