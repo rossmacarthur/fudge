@@ -66,30 +66,23 @@ func (e *Error) Error() string {
 func (e *Error) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
-		if s.Flag(int('+')) || s.Flag(int('#')) {
-			if e.Message != "" {
-				fmt.Fprintf(s, "%s", e.Message)
-				if e.Code != "" {
-					fmt.Fprintf(s, " (%s)", e.Code)
-				}
-				if len(e.Trace) > 0 {
-					fmt.Fprint(s, "\n")
-				}
+		fmt.Fprintf(s, "%s", e.fullMessage())
+
+		switch {
+		case s.Flag(int('+')):
+			for _, f := range e.Trace {
+				fmt.Fprint(s, "\n")
+				f.Format(s, verb)
 			}
-			if e.Original != nil {
-				fmt.Fprintf(s, "%s", e.Original.Error())
-				if len(e.Trace) > 0 {
-					fmt.Fprint(s, "\n")
-				}
+		case s.Flag(int('#')):
+			kvs := e.fullKeyValues()
+			if len(kvs) > 0 {
+				fmt.Fprintf(s, " {%v}", kvs)
 			}
-			for i, f := range e.Trace {
-				if i > 0 {
-					fmt.Fprint(s, "\n")
-				}
-				f.Format(s, verb) // Note: behaviour is different for + and # flags
+			for _, f := range e.Trace {
+				fmt.Fprint(s, "\n")
+				f.Format(s, verb)
 			}
-		} else {
-			fmt.Fprintf(s, "%s", e.fullMessage())
 		}
 	default:
 		fmt.Fprintf(s, "%%!%c(*errors.Error=%s)", verb, e.fullMessage())
@@ -127,4 +120,15 @@ func (e *Error) fullMessage() string {
 	}
 
 	return s.String()
+}
+
+// fullKeyValues returns the full key values
+func (e *Error) fullKeyValues() KeyValues {
+	kvs := make(KeyValues)
+	for i := len(e.Trace) - 1; i >= 0; i-- {
+		for k, v := range e.Trace[i].KeyValues {
+			kvs[k] = v
+		}
+	}
+	return kvs
 }

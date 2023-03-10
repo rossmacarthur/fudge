@@ -40,12 +40,6 @@ func (f Frame) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
 		fmt.Fprintf(s, "%s:%d %s", f.File, f.Line, f.Function)
-		if f.Message != "" {
-			fmt.Fprintf(s, ": %s", f.Message)
-		}
-		if len(f.KeyValues) > 0 && s.Flag(int('#')) {
-			fmt.Fprintf(s, " {%v}", f.KeyValues)
-		}
 	default:
 		fmt.Fprintf(s, "%%!%c(Frame=%s:%d)", verb, f.File, f.Line)
 	}

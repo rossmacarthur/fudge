@@ -29,13 +29,13 @@ func TestNew(t *testing.T) {
 		fudge.KV("this", "that"),
 		fudge.MKV{"other": "thing"})
 	s := digits.ReplaceAllString(fmt.Sprintf("%#v", err), ":XXX")
-	require.Equal(t,
-		"github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestNew: such test {key:value, other:thing, this:that}\n"+
-			"testing/testing.go:XXX tRunner\n"+
-			"runtime/asm:XXX goexit", s)
+	require.Equal(t, `such test {key:value, other:thing, this:that}
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestNew
+testing/testing.go:XXX tRunner
+runtime/asm:XXX goexit`, s)
 }
 
-func TestSentinel(t *testing.T) {
+func TestNewSentinel(t *testing.T) {
 	err := NewSentinel("such test", "TEST1234")
 	s := digits.ReplaceAllString(fmt.Sprintf("%#v", err), ":XXX")
 	require.Equal(t, "such test (TEST1234)", s)
@@ -89,45 +89,47 @@ func TestWrap(t *testing.T) {
 		{
 			name:  "other",
 			errFn: func() error { return &stringError{msg: "such test"} },
-			exp: `such test
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: very wrap
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: and another
+			exp: `and another: very wrap: such test
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
 testing/testing.go:XXX tRunner
 runtime/asm:XXX goexit`,
 		},
 		{
 			name:  "std",
 			errFn: func() error { return io.EOF },
-			exp: `EOF
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: very wrap
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: and another
+			exp: `and another: very wrap: EOF
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
 testing/testing.go:XXX tRunner
 runtime/asm:XXX goexit`,
 		},
 		{
 			name:  "fudge",
 			errFn: func() error { return New("such test") },
-			exp: `github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func4: such test
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: very wrap
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: and another
+			exp: `and another: very wrap: such test
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func4
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
 testing/testing.go:XXX tRunner
 runtime/asm:XXX goexit`,
 		},
 		{
 			name:  "fudge with kvs",
 			errFn: func() error { return New("such test", fudge.KV("key", "value"), fudge.KV("this", "that")) },
-			exp: `github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func5: such test
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: very wrap
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: and another
+			exp: `and another: very wrap: such test
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func5
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
 testing/testing.go:XXX tRunner
 runtime/asm:XXX goexit`,
 		},
 		{
 			name:  "fudge sentinel",
 			errFn: func() error { return NewSentinel("such test", "123456") },
-			exp: `such test (123456)
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: very wrap
-github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7: and another
+			exp: `and another: very wrap: such test (123456)
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
+github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
 testing/testing.go:XXX tRunner
 runtime/asm:XXX goexit`,
 		},
