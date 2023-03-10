@@ -13,7 +13,9 @@ import (
 // is wrapped with Wrap.
 func New(msg string, opts ...fudge.Option) error {
 	trace := trace(1)
-	if call(2).Function == "runtime.doInit" {
+
+	c := call(2)
+	if c.File == "runtime/proc.go" && c.Function == "doInit" {
 		return &Error{Message: msg}
 	}
 
