@@ -12,20 +12,32 @@ import (
 // If used in the global scope no stack trace will be attached until the error
 // is wrapped with Wrap.
 func New(msg string, opts ...fudge.Option) error {
-	trace := trace(1)
-
 	c := call(2)
 	if c.File == "runtime/proc.go" && c.Function == "doInit" {
 		return &Error{Binary: binary(), Message: msg}
 	}
 
-	errors := Error{Binary: binary(), Trace: trace}
+	errors := Error{Binary: binary(), Trace: trace(1)}
 	frame := &errors.Trace[0]
 	frame.Message = msg
 	for _, o := range opts {
 		o.Apply(frame)
 	}
 	return &errors
+}
+
+// NewWithCause creates a new error with a message, cause and options.
+//
+// This method is intended to be used when the cause is a Fudge error and you
+// don't want to use Wrap which merges the stack trace.
+func NewWithCause(msg string, cause error, opts ...fudge.Option) error {
+	errors := &Error{Binary: binary(), Cause: cause, Trace: trace(1)}
+	frame := &errors.Trace[0]
+	frame.Message = msg
+	for _, o := range opts {
+		o.Apply(frame)
+	}
+	return errors
 }
 
 // NewSentinel creates a new sentinel error with a message and code.
@@ -75,7 +87,7 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 
 	} else {
 		// wrapping a non-Fudge error
-		errors = &Error{Binary: binary(), Original: err, Trace: trace(1)}
+		errors = &Error{Binary: binary(), Cause: err, Trace: trace(1)}
 		frame := &errors.Trace[0]
 		frame.Message = msg
 		for _, o := range opts {

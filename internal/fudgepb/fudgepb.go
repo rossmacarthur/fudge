@@ -16,11 +16,11 @@ func FromProto(pb *Error) error {
 	for i := len(pb.Hops) - 1; i >= 0; i-- {
 		hop := pb.Hops[i]
 		err = &errors.Error{
-			Binary:   hop.Binary,
-			Message:  hop.Message,
-			Code:     hop.Code,
-			Original: err, // NB: Each error wraps the previous hop
-			Trace:    traceFromProto(hop.Trace),
+			Binary:  hop.Binary,
+			Message: hop.Message,
+			Code:    hop.Code,
+			Cause:   err, // NB: Each error wraps the previous hop
+			Trace:   traceFromProto(hop.Trace),
 		}
 	}
 

@@ -169,7 +169,7 @@ func TestToProto(t *testing.T) {
 				err := errors.New("this hop")
 				ferr := new(errors.Error)
 				require.True(t, errors.As(err, &ferr))
-				ferr.Original = errors.Wrap(errSentinel, "very wrap")
+				ferr.Cause = errors.Wrap(errSentinel, "very wrap")
 				return err
 			},
 		},

@@ -1,46 +1,46 @@
 {
-  "hops":  [
+  "hops": [
     {
-      "binary":  "fudgepb.test",
-      "trace":  [
+      "binary": "fudgepb.test",
+      "trace": [
         {
-          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func5",
-          "line":  156,
-          "message":  "such test",
-          "keyValues":  [
+          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function": "TestToProto.func5",
+          "line": 156,
+          "message": "such test",
+          "keyValues": [
             {
-              "key":  "hello",
-              "value":  "world"
+              "key": "hello",
+              "value": "world"
             }
           ]
         },
         {
-          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func5",
-          "line":  157,
-          "message":  "very wrap",
-          "keyValues":  [
+          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function": "TestToProto.func5",
+          "line": 157,
+          "message": "very wrap",
+          "keyValues": [
             {
-              "key":  "foo",
-              "value":  "bar"
+              "key": "foo",
+              "value": "bar"
             }
           ]
         },
         {
-          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func8",
-          "line":  182
+          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function": "TestToProto.func8",
+          "line": 182
         },
         {
-          "file":  "testing/testing.go",
-          "function":  "tRunner",
-          "line":  1576
+          "file": "testing/testing.go",
+          "function": "tRunner",
+          "line": 1576
         },
         {
-          "file":  "runtime/asm_arm64.s",
-          "function":  "goexit",
-          "line":  1172
+          "file": "runtime/asm_arm64.s",
+          "function": "goexit",
+          "line": 1172
         }
       ]
     }

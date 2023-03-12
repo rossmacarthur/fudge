@@ -15,8 +15,8 @@ type Error struct {
 	Message string
 	// Code is the optional sentinel error code (can be empty)
 	Code string
-	// Original is the original non-Fudge error (can be nil)
-	Original error
+	// Cause is the original non-Fudge error (can be nil)
+	Cause error
 	// Trace is the stack trace
 	//
 	// contextual messages and key values are attached to individual stack frames
@@ -26,7 +26,7 @@ type Error struct {
 // Unwrap implements the errors.Unwrap interface and returns the original
 // error if possible
 func (e *Error) Unwrap() error {
-	return e.Original
+	return e.Cause
 }
 
 // clone deep copies the error
@@ -119,8 +119,8 @@ func (e *Error) fullMessage() string {
 			s.WriteString(")")
 		}
 	}
-	if e.Original != nil {
-		write(e.Original.Error())
+	if e.Cause != nil {
+		write(e.Cause.Error())
 	}
 
 	return s.String()
