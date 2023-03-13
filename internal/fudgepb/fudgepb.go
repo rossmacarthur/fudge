@@ -1,9 +1,22 @@
 package fudgepb
 
 import (
+	"context"
 	"sort"
 
+	stderrors "errors"
+
 	"github.com/rossmacarthur/fudge/errors"
+)
+
+const (
+	kindStd   int32 = 1
+	kindFudge int32 = 2
+)
+
+const (
+	codeContextCanceled         = "context.Canceled"
+	codeContextDeadlineExceeded = "context.DeadlineExceeded"
 )
 
 func FromProto(pb *Error) error {
@@ -12,19 +25,44 @@ func FromProto(pb *Error) error {
 	}
 
 	var err error
+	var done bool
 
 	for i := len(pb.Hops) - 1; i >= 0; i-- {
 		hop := pb.Hops[i]
-		err = &errors.Error{
-			Binary:  hop.Binary,
-			Message: hop.Message,
-			Code:    hop.Code,
-			Cause:   err, // NB: Each error wraps the previous hop
-			Trace:   traceFromProto(hop.Trace),
+		err, done = errorFromHop(hop, err)
+		if done {
+			break
 		}
 	}
 
 	return err
+}
+
+func errorFromHop(hop *Hop, cause error) (error, bool) {
+	switch hop.Kind {
+
+	case kindStd:
+		switch hop.Code {
+		case codeContextCanceled:
+			return context.Canceled, true
+		case codeContextDeadlineExceeded:
+			return context.DeadlineExceeded, true
+		}
+		return stderrors.New(hop.Message), true
+
+	case kindFudge:
+		hop := errors.Error{
+			Binary:  hop.Binary,
+			Message: hop.Message,
+			Code:    hop.Code,
+			Cause:   cause, // NB: Each error wraps the previous hop
+			Trace:   traceFromProto(hop.Trace),
+		}
+		return &hop, false
+
+	default:
+		return errors.New("invalid data"), true
+	}
 }
 
 func traceFromProto(pb []*Frame) []errors.Frame {
@@ -56,26 +94,42 @@ func ToProto(err error) *Error {
 		if err == nil {
 			break
 		}
-
-		ferr, ok := err.(*errors.Error)
-		if ok {
-			hops = append(hops, &Hop{
-				Binary:  ferr.Binary,
-				Message: ferr.Message,
-				Code:    ferr.Code,
-				Trace:   traceToProto(ferr.Trace),
-			})
-			err = ferr.Unwrap()
-		} else {
-			// Not a Fudge error, so, theres nothing more we can do
-			hops = append(hops, &Hop{
-				Message: err.Error(),
-			})
+		hop, done := errorToHop(err)
+		hops = append(hops, hop)
+		if done {
 			break
 		}
+		err = errors.Unwrap(err)
 	}
 
 	return &Error{Hops: hops}
+}
+
+func errorToHop(err error) (*Hop, bool) {
+	ferr, ok := err.(*errors.Error)
+	if ok {
+		return &Hop{
+			Kind:    kindFudge,
+			Binary:  ferr.Binary,
+			Message: ferr.Message,
+			Code:    ferr.Code,
+			Trace:   traceToProto(ferr.Trace),
+		}, false
+	}
+
+	// Not a Fudge error, see if it is a supported sentinel
+	var code string
+	if errors.Is(err, context.Canceled) {
+		code = codeContextCanceled
+	} else if errors.Is(err, context.DeadlineExceeded) {
+		code = codeContextDeadlineExceeded
+	}
+
+	return &Hop{
+		Kind:    kindStd,
+		Message: err.Error(),
+		Code:    code,
+	}, true
 }
 
 func traceToProto(trace []errors.Frame) []*Frame {

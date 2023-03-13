@@ -6,14 +6,8 @@
       "trace":  [
         {
           "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func6",
-          "line":  208,
-          "message":  "such test"
-        },
-        {
-          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func6",
-          "line":  209,
+          "function":  "TestToProto.func4",
+          "line":  199,
           "message":  "very wrap"
         },
         {
@@ -32,6 +26,11 @@
           "line":  1172
         }
       ]
+    },
+    {
+      "kind":  1,
+      "message":  "context canceled",
+      "code":  "context.Canceled"
     }
   ]
 }

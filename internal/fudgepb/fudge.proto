@@ -9,10 +9,11 @@ message Error {
 }
 
 message Hop {
-    string binary = 1;
-    string message = 2;
-    string code = 3;
-    repeated Frame trace = 4;
+    int32 kind = 1;
+    string binary = 2;
+    string message = 3;
+    string code = 4;
+    repeated Frame trace = 5;
 }
 
 message Frame {

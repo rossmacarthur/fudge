@@ -1,55 +1,57 @@
 {
-  "hops": [
+  "hops":  [
     {
-      "binary": "fudgepb.test",
-      "trace": [
+      "kind":  2,
+      "binary":  "fudgepb.test",
+      "trace":  [
         {
-          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function": "TestToProto.func7",
-          "line": 169,
-          "message": "this hop"
+          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function":  "TestToProto.func9",
+          "line":  228,
+          "message":  "this hop"
         },
         {
-          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function": "TestToProto.func8",
-          "line": 182
+          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function":  "TestToProto.func10",
+          "line":  241
         },
         {
-          "file": "testing/testing.go",
-          "function": "tRunner",
-          "line": 1576
+          "file":  "testing/testing.go",
+          "function":  "tRunner",
+          "line":  1576
         },
         {
-          "file": "runtime/asm_arm64.s",
-          "function": "goexit",
-          "line": 1172
+          "file":  "runtime/asm_arm64.s",
+          "function":  "goexit",
+          "line":  1172
         }
       ]
     },
     {
-      "message": "such test",
-      "code": "TEST1234",
-      "trace": [
+      "kind":  2,
+      "message":  "such test",
+      "code":  "TEST1234",
+      "trace":  [
         {
-          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function": "TestToProto.func7",
-          "line": 172,
-          "message": "very wrap"
+          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function":  "TestToProto.func9",
+          "line":  231,
+          "message":  "very wrap"
         },
         {
-          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function": "TestToProto.func8",
-          "line": 182
+          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function":  "TestToProto.func10",
+          "line":  241
         },
         {
-          "file": "testing/testing.go",
-          "function": "tRunner",
-          "line": 1576
+          "file":  "testing/testing.go",
+          "function":  "tRunner",
+          "line":  1576
         },
         {
-          "file": "runtime/asm_arm64.s",
-          "function": "goexit",
-          "line": 1172
+          "file":  "runtime/asm_arm64.s",
+          "function":  "goexit",
+          "line":  1172
         }
       ]
     }

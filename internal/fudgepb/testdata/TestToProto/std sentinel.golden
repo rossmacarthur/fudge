@@ -1,0 +1,9 @@
+{
+  "hops":  [
+    {
+      "kind":  1,
+      "message":  "context canceled",
+      "code":  "context.Canceled"
+    }
+  ]
+}

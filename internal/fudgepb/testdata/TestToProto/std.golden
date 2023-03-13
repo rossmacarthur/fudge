@@ -1,7 +1,8 @@
 {
-  "hops": [
+  "hops":  [
     {
-      "message": "EOF"
+      "kind":  1,
+      "message":  "EOF"
     }
   ]
 }
