@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package candystore;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/rossmacarthur/fudge/internal/grpctest/pb";
+
+service CandyStore {
+    rpc Buy(BuyRequest) returns (google.protobuf.Empty) {}
+}
+
+message BuyRequest {
+    int64 hops = 1;
+}
