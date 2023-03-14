@@ -1,4 +1,4 @@
-package grpcerrors_test
+package grpc_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/rossmacarthur/fudge/errors"
-	grpcerrors "github.com/rossmacarthur/fudge/grpc/errors"
+	errorsgrpc "github.com/rossmacarthur/fudge/errors/grpc"
 
 	"github.com/rossmacarthur/fudge/internal/grpctest"
 	"github.com/rossmacarthur/fudge/internal/grpctest/pb"
@@ -314,13 +314,13 @@ func TestInterceptors(t *testing.T) {
 			var clientOpts []grpc.DialOption
 			if !tt.noServerIntercept {
 				serverOpts = append(serverOpts,
-					grpc.UnaryInterceptor(grpcerrors.UnaryServerInterceptor),
-					grpc.StreamInterceptor(grpcerrors.StreamServerInterceptor))
+					grpc.UnaryInterceptor(errorsgrpc.UnaryServerInterceptor),
+					grpc.StreamInterceptor(errorsgrpc.StreamServerInterceptor))
 			}
 			if !tt.noClientIntercept {
 				clientOpts = append(clientOpts,
-					grpc.WithUnaryInterceptor(grpcerrors.UnaryClientInterceptor),
-					grpc.WithStreamInterceptor(grpcerrors.StreamClientInterceptor))
+					grpc.WithUnaryInterceptor(errorsgrpc.UnaryClientInterceptor),
+					grpc.WithStreamInterceptor(errorsgrpc.StreamClientInterceptor))
 			}
 
 			if !tt.noServer {

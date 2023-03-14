@@ -8,7 +8,7 @@ import (
 	"net"
 
 	"github.com/rossmacarthur/fudge/errors"
-	grpcerrors "github.com/rossmacarthur/fudge/grpc/errors"
+	errorsgrpc "github.com/rossmacarthur/fudge/errors/grpc"
 	"github.com/rossmacarthur/fudge/internal/grpctest"
 	"github.com/rossmacarthur/fudge/internal/grpctest/pb"
 	"google.golang.org/grpc"
@@ -44,7 +44,7 @@ func main() {
 		}
 
 		gsvr := grpc.NewServer(
-			grpc.UnaryInterceptor(grpcerrors.UnaryServerInterceptor))
+			grpc.UnaryInterceptor(errorsgrpc.UnaryServerInterceptor))
 		pb.RegisterCandyStoreServer(gsvr, svr)
 
 		fmt.Printf("Serving gRPC on %s...\n", addr)
@@ -53,7 +53,7 @@ func main() {
 	} else {
 		ctx := context.Background()
 		cl, err := grpctest.NewClient(addr,
-			grpc.WithUnaryInterceptor(grpcerrors.UnaryClientInterceptor))
+			grpc.WithUnaryInterceptor(errorsgrpc.UnaryClientInterceptor))
 		if err != nil {
 			log.Fatal(err)
 		}
