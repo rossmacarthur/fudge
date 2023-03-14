@@ -17,26 +17,25 @@ func New(msg string, opts ...fudge.Option) error {
 		return &Error{Binary: binary(), Message: msg}
 	}
 
-	errors := Error{Binary: binary(), Trace: trace(1)}
+	errors := &Error{Binary: binary(), Trace: trace(1)}
 	frame := &errors.Trace[0]
 	frame.Message = msg
-	for _, o := range opts {
-		o.Apply(frame)
-	}
-	return &errors
+	applyOptions(frame, opts)
+
+	return errors
 }
 
 // NewWithCause creates a new error with a message, cause and options.
 //
 // This method is intended to be used when the cause is a Fudge error and you
-// don't want to use Wrap which merges the stack trace.
+// don't want to use Wrap which merges the stack trace. Most of the time you
+// want to use Wrap.
 func NewWithCause(msg string, cause error, opts ...fudge.Option) error {
 	errors := &Error{Binary: binary(), Cause: cause, Trace: trace(1)}
 	frame := &errors.Trace[0]
 	frame.Message = msg
-	for _, o := range opts {
-		o.Apply(frame)
-	}
+	applyOptions(frame, opts)
+
 	return errors
 }
 
@@ -68,9 +67,7 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 		errors.Trace = trace(1)
 		frame := &errors.Trace[0]
 		frame.Message = msg
-		for _, o := range opts {
-			o.Apply(frame)
-		}
+		applyOptions(frame, opts)
 
 	} else if ok {
 		// wrapping a Fudge error
@@ -81,18 +78,14 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 		} else {
 			frame.Message = fmt.Sprintf("%s: %s", msg, frame.Message)
 		}
-		for _, o := range opts {
-			o.Apply(frame)
-		}
+		applyOptions(frame, opts)
 
 	} else {
 		// wrapping a non-Fudge error
 		errors = &Error{Binary: binary(), Cause: err, Trace: trace(1)}
 		frame := &errors.Trace[0]
 		frame.Message = msg
-		for _, o := range opts {
-			o.Apply(frame)
-		}
+		applyOptions(frame, opts)
 	}
 
 	return errors

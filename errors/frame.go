@@ -28,14 +28,6 @@ func (f *Frame) clone() *Frame {
 	return &c
 }
 
-// SetKeyValue implements the fudge.apply interface
-func (f *Frame) SetKeyValue(k, v string) {
-	if f.KeyValues == nil {
-		f.KeyValues = make(KeyValues)
-	}
-	f.KeyValues[k] = v
-}
-
 func (f Frame) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
