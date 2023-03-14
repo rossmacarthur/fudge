@@ -7,9 +7,15 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/rossmacarthur/fudge/internal/grpctest/pb";
 
 service CandyStore {
-    rpc Buy(BuyRequest) returns (google.protobuf.Empty) {}
+    rpc Buy(BuyRequest) returns (Candy) {}
+    rpc StreamCandyTo(stream Candy) returns (google.protobuf.Empty) {}
+    rpc StreamCandyFrom(google.protobuf.Empty) returns (stream Candy) {}
 }
 
 message BuyRequest {
     int64 hops = 1;
+}
+
+message Candy {
+    string name = 1;
 }

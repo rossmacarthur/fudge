@@ -20,14 +20,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	CandyStore_Buy_FullMethodName = "/candystore.CandyStore/Buy"
+	CandyStore_Buy_FullMethodName             = "/candystore.CandyStore/Buy"
+	CandyStore_StreamCandyTo_FullMethodName   = "/candystore.CandyStore/StreamCandyTo"
+	CandyStore_StreamCandyFrom_FullMethodName = "/candystore.CandyStore/StreamCandyFrom"
 )
 
 // CandyStoreClient is the client API for CandyStore service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CandyStoreClient interface {
-	Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*Candy, error)
+	StreamCandyTo(ctx context.Context, opts ...grpc.CallOption) (CandyStore_StreamCandyToClient, error)
+	StreamCandyFrom(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (CandyStore_StreamCandyFromClient, error)
 }
 
 type candyStoreClient struct {
@@ -38,8 +42,8 @@ func NewCandyStoreClient(cc grpc.ClientConnInterface) CandyStoreClient {
 	return &candyStoreClient{cc}
 }
 
-func (c *candyStoreClient) Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *candyStoreClient) Buy(ctx context.Context, in *BuyRequest, opts ...grpc.CallOption) (*Candy, error) {
+	out := new(Candy)
 	err := c.cc.Invoke(ctx, CandyStore_Buy_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -47,11 +51,79 @@ func (c *candyStoreClient) Buy(ctx context.Context, in *BuyRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *candyStoreClient) StreamCandyTo(ctx context.Context, opts ...grpc.CallOption) (CandyStore_StreamCandyToClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CandyStore_ServiceDesc.Streams[0], CandyStore_StreamCandyTo_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &candyStoreStreamCandyToClient{stream}
+	return x, nil
+}
+
+type CandyStore_StreamCandyToClient interface {
+	Send(*Candy) error
+	CloseAndRecv() (*emptypb.Empty, error)
+	grpc.ClientStream
+}
+
+type candyStoreStreamCandyToClient struct {
+	grpc.ClientStream
+}
+
+func (x *candyStoreStreamCandyToClient) Send(m *Candy) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *candyStoreStreamCandyToClient) CloseAndRecv() (*emptypb.Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(emptypb.Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *candyStoreClient) StreamCandyFrom(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (CandyStore_StreamCandyFromClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CandyStore_ServiceDesc.Streams[1], CandyStore_StreamCandyFrom_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &candyStoreStreamCandyFromClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CandyStore_StreamCandyFromClient interface {
+	Recv() (*Candy, error)
+	grpc.ClientStream
+}
+
+type candyStoreStreamCandyFromClient struct {
+	grpc.ClientStream
+}
+
+func (x *candyStoreStreamCandyFromClient) Recv() (*Candy, error) {
+	m := new(Candy)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // CandyStoreServer is the server API for CandyStore service.
 // All implementations must embed UnimplementedCandyStoreServer
 // for forward compatibility
 type CandyStoreServer interface {
-	Buy(context.Context, *BuyRequest) (*emptypb.Empty, error)
+	Buy(context.Context, *BuyRequest) (*Candy, error)
+	StreamCandyTo(CandyStore_StreamCandyToServer) error
+	StreamCandyFrom(*emptypb.Empty, CandyStore_StreamCandyFromServer) error
 	mustEmbedUnimplementedCandyStoreServer()
 }
 
@@ -59,8 +131,14 @@ type CandyStoreServer interface {
 type UnimplementedCandyStoreServer struct {
 }
 
-func (UnimplementedCandyStoreServer) Buy(context.Context, *BuyRequest) (*emptypb.Empty, error) {
+func (UnimplementedCandyStoreServer) Buy(context.Context, *BuyRequest) (*Candy, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Buy not implemented")
+}
+func (UnimplementedCandyStoreServer) StreamCandyTo(CandyStore_StreamCandyToServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamCandyTo not implemented")
+}
+func (UnimplementedCandyStoreServer) StreamCandyFrom(*emptypb.Empty, CandyStore_StreamCandyFromServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamCandyFrom not implemented")
 }
 func (UnimplementedCandyStoreServer) mustEmbedUnimplementedCandyStoreServer() {}
 
@@ -93,6 +171,53 @@ func _CandyStore_Buy_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CandyStore_StreamCandyTo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CandyStoreServer).StreamCandyTo(&candyStoreStreamCandyToServer{stream})
+}
+
+type CandyStore_StreamCandyToServer interface {
+	SendAndClose(*emptypb.Empty) error
+	Recv() (*Candy, error)
+	grpc.ServerStream
+}
+
+type candyStoreStreamCandyToServer struct {
+	grpc.ServerStream
+}
+
+func (x *candyStoreStreamCandyToServer) SendAndClose(m *emptypb.Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *candyStoreStreamCandyToServer) Recv() (*Candy, error) {
+	m := new(Candy)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _CandyStore_StreamCandyFrom_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CandyStoreServer).StreamCandyFrom(m, &candyStoreStreamCandyFromServer{stream})
+}
+
+type CandyStore_StreamCandyFromServer interface {
+	Send(*Candy) error
+	grpc.ServerStream
+}
+
+type candyStoreStreamCandyFromServer struct {
+	grpc.ServerStream
+}
+
+func (x *candyStoreStreamCandyFromServer) Send(m *Candy) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // CandyStore_ServiceDesc is the grpc.ServiceDesc for CandyStore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -105,6 +230,17 @@ var CandyStore_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CandyStore_Buy_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamCandyTo",
+			Handler:       _CandyStore_StreamCandyTo_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "StreamCandyFrom",
+			Handler:       _CandyStore_StreamCandyFrom_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "candystore.proto",
 }

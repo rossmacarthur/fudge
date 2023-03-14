@@ -23,3 +23,29 @@ func UnaryServerInterceptor(ctx context.Context, req any,
 	resp, err := handler(ctx, req)
 	return resp, interceptServer(err)
 }
+
+func StreamClientInterceptor(ctx context.Context, desc *grpc.StreamDesc,
+	cc *grpc.ClientConn, method string, streamer grpc.Streamer,
+	opts ...grpc.CallOption) (grpc.ClientStream, error) {
+
+	cs, err := streamer(ctx, desc, cc, method, opts...)
+	return &clientStream{ClientStream: cs}, interceptServer(err)
+}
+
+type clientStream struct {
+	grpc.ClientStream
+}
+
+func (s *clientStream) SendMsg(m any) error {
+	return interceptClient(s.ClientStream.SendMsg(m))
+}
+
+func (s *clientStream) RecvMsg(m any) error {
+	return interceptClient(s.ClientStream.RecvMsg(m))
+}
+
+func StreamServerInterceptor(srv any, ss grpc.ServerStream,
+	info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+
+	return interceptServer(handler(srv, ss))
+}

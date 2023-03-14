@@ -9,11 +9,23 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// interceptClient tries converting the error to a gRPC status and if it can
+// then it extracts any Fudge information out of the details. Otherwise the
+// error is simply wrapped to add a stack trace.
 func interceptClient(err error) error {
-	s, _ := status.FromError(err)
+	if err == nil {
+		return nil
+	}
+	s, ok := status.FromError(err)
+	if !ok {
+		// Not a gRPC error
+		return errors.Wrap(err, "")
+	}
 	return FromStatus(s)
 }
 
+// interceptServer converts the error into an error that implements GRPCStatus.
+// Any Fudge error information is encoded in the gRPC status details.
 func interceptServer(err error) error {
 	if err == nil {
 		return nil
