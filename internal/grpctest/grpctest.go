@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/rossmacarthur/fudge/errors"
-	grpcerrors "github.com/rossmacarthur/fudge/grpc/errors"
+	grpcerrors "github.com/rossmacarthur/fudge/errors/grpc"
 	"github.com/rossmacarthur/fudge/internal/grpctest/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
