@@ -1,6 +1,6 @@
 # fudge
 
-Oh Fudge! A straight-forward error and logging library for Go.
+Oh Fudge! A straight-forward error library for Go.
 
 ## Installation
 
@@ -10,11 +10,11 @@ Install using the following
 go get github.com/rossmacarthur/fudge
 ```
 
-## fudge/errors
+## errors
 
-fudge/errors provides a simple way to add contextual messages, structured key
-values and stack traces to errors. You can import the package using the
-following.
+`errors` provides a simple way to add contextual messages, structured key values
+and stack traces to errors. gRPC interceptors are provided to allow passing
+Fudge errors over gRPC. You can import the package using the following.
 
 ```go
 import "github.com/rossmacarthur/fudge/errors"
@@ -41,18 +41,25 @@ Multiple key value pairs are also possible.
 errors.New("failed to shave yak", fudge.MKV{"yak_id": yakID, "hair_len": hairLen})
 ```
 
-Sentinel errors are defined in the global scope and do not get a stack trace
-attached until they are wrapped with Wrap.
+Sentinel errors are typically defined in the global scope and do not get a stack
+trace attached until they are wrapped with `Wrap`. A code is required in order
+for the error to be passed across gRPC in such a way that `errors.Is` checks
+still work. If you don't need this behaviour then you can just define sentinels
+using `errors.New`.
 
 ```go
+// If you need gRPC support
+var ErrShavingFailed = errors.Sentinel("failed to shave yak", "ERR_123456")
+
+// Otherwise this is fine
 var ErrShavingFailed = errors.New("failed to shave yak")
 ```
 
 ### Annotation
 
 Existing errors can be wrapped with contextual messages and key value pairs. You
-can wrap both Fudge errors and non-Fudge errors. The only difference is that the
-traceback will start at the `errors.Wrap` call for non-Fudge errors.
+can wrap both Fudge errors and non-Fudge errors. The only difference is that
+for non-Fudge errors the traceback will start at the `errors.Wrap` call.
 
 ```go
 func locateRazor() error {

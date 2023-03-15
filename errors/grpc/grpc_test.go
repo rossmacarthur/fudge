@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var errSentinel = errors.NewSentinel("such test", "ERR_12345")
+var errSentinel = errors.Sentinel("such test", "ERR_12345")
 
 func TestInterceptors(t *testing.T) {
 	ctx := context.Background()

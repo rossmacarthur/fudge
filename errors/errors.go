@@ -7,21 +7,35 @@ import (
 	"github.com/rossmacarthur/fudge"
 )
 
+// Sentinel creates a new sentinel error with a message and code.
+//
+// This method is intended to be used to define global sentinel errors. These
+// errors can be used with Is to check for equality even over gRPC (if the
+// provided gRPC interceptors are used). No stack trace is attached and these
+// errors must be wrapped with Wrap when they are used in order to attach one.
+func Sentinel(msg string, code string) error {
+	return &Error{Message: msg, Code: code}
+}
+
 // New creates a new error with a message and options.
 //
-// If used in the global scope no stack trace will be attached until the error
-// is wrapped with Wrap.
+// These errors can be used with Is to check for equality but not over gRPC. If
+// that is required then Sentinel should be used. If used in the global scope
+// then no stack trace is attached and these errors must be wrapped with Wrap
+// when they are used in order to attach one.
 func New(msg string, opts ...fudge.Option) error {
-	c := call(2)
-	if c.File == "runtime/proc.go" && c.Function == "doInit" {
-		return &Error{Binary: binary(), Message: msg}
+	t := trace(1)
+	if isGlobal(t) {
+		if len(opts) > 0 {
+			panic("fudge/errors: options not allowed in conjunction with global errors")
+		}
+		return &Error{Message: msg}
 	}
 
-	errors := &Error{Binary: binary(), Trace: trace(1)}
+	errors := &Error{Binary: binary(), Trace: t}
 	frame := &errors.Trace[0]
 	frame.Message = msg
 	applyOptions(frame, opts)
-
 	return errors
 }
 
@@ -35,16 +49,7 @@ func NewWithCause(msg string, cause error, opts ...fudge.Option) error {
 	frame := &errors.Trace[0]
 	frame.Message = msg
 	applyOptions(frame, opts)
-
 	return errors
-}
-
-// NewSentinel creates a new sentinel error with a message and code.
-//
-// This method is intended to be used to define global sentinel errors. No
-// stack trace is attached until these errors are wrapped with Wrap.
-func NewSentinel(msg string, code string) error {
-	return &Error{Message: msg, Code: code}
 }
 
 // Wrap wraps an existing error with a new message and options and the

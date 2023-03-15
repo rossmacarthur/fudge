@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-var errSentinel = errors.NewSentinel("such test", "TEST1234")
+var errSentinel = errors.Sentinel("such test", "TEST1234")
 
 func TestFromProto(t *testing.T) {
 	tests := []struct {

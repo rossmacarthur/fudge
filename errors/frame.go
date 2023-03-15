@@ -28,6 +28,15 @@ func (f *Frame) clone() *Frame {
 	return &c
 }
 
+func isGlobal(t []Frame) bool {
+	for _, f := range t {
+		if f.File == "runtime/proc.go" && f.Function == "doInit" {
+			return true
+		}
+	}
+	return false
+}
+
 func (f Frame) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
@@ -49,9 +58,9 @@ func trace(skip int) []Frame {
 	return trace
 }
 
-func call(skip int) Frame {
+func call(skip int) *Frame {
 	f := stack.Call(skip + 1)
-	return Frame{
+	return &Frame{
 		File:     f.File,
 		Function: f.Function,
 		Line:     f.Line,

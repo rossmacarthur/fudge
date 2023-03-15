@@ -13,7 +13,7 @@ import (
 
 var digits = regexp.MustCompile(`(_\w+\.s)?:\d+`)
 
-var sentinelTest = NewSentinel("test error", "TEST1234")
+var sentinelTest = Sentinel("test error", "TEST1234")
 
 type stringError struct {
 	msg string
@@ -36,7 +36,7 @@ runtime/asm:XXX goexit`, s)
 }
 
 func TestNewSentinel(t *testing.T) {
-	err := NewSentinel("such test", "TEST1234")
+	err := Sentinel("such test", "TEST1234")
 	s := digits.ReplaceAllString(fmt.Sprintf("%#v", err), ":XXX")
 	require.Equal(t, "such test (TEST1234)", s)
 }
@@ -126,7 +126,7 @@ runtime/asm:XXX goexit`,
 		},
 		{
 			name:  "fudge sentinel",
-			errFn: func() error { return NewSentinel("such test", "123456") },
+			errFn: func() error { return Sentinel("such test", "123456") },
 			exp: `and another: very wrap: such test (123456)
 github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7
 github.com/rossmacarthur/fudge/errors/errors_test.go:XXX TestWrap.func7

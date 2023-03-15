@@ -1,9 +1,9 @@
 {
-  "hops":  [
+  "hops": [
     {
-      "kind":  1,
-      "message":  "context canceled",
-      "code":  "context.Canceled"
+      "kind": 1,
+      "message": "context canceled",
+      "code": "context.Canceled"
     }
   ]
 }

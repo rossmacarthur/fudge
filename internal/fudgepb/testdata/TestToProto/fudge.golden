@@ -1,29 +1,29 @@
 {
-  "hops":  [
+  "hops": [
     {
-      "kind":  2,
-      "binary":  "fudgepb.test",
-      "trace":  [
+      "kind": 2,
+      "binary": "fudgepb.test",
+      "trace": [
         {
-          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func5",
-          "line":  203,
-          "message":  "such test"
+          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function": "TestToProto.func5",
+          "line": 203,
+          "message": "such test"
         },
         {
-          "file":  "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
-          "function":  "TestToProto.func10",
-          "line":  241
+          "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
+          "function": "TestToProto.func10",
+          "line": 241
         },
         {
-          "file":  "testing/testing.go",
-          "function":  "tRunner",
-          "line":  1576
+          "file": "testing/testing.go",
+          "function": "tRunner",
+          "line": 1576
         },
         {
-          "file":  "runtime/asm_arm64.s",
-          "function":  "goexit",
-          "line":  1172
+          "file": "runtime/asm_arm64.s",
+          "function": "goexit",
+          "line": 1172
         }
       ]
     }
