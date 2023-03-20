@@ -1,0 +1,5 @@
+package test
+
+import test "github.com/rossmacarthur/fudge/errors"
+
+var ErrTest = test.Sentinel("test error", "ERR_52fdfc072182654f")
