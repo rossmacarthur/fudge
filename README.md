@@ -2,7 +2,18 @@
 
 Oh Fudge! A straight-forward error library for Go.
 
-## Installation
+## Features
+
+- Implements standard library features
+  - Unwrap wrapped errors using `errors.Unwrap`
+  - Comparison with `errors.Is`
+- Contextual messages
+- Structured key value pairs
+- Stack traces
+- Custom formatting
+- gRPC support
+
+## Getting started
 
 Install using the following
 
@@ -10,36 +21,104 @@ Install using the following
 go get github.com/rossmacarthur/fudge
 ```
 
-## errors
-
-`errors` provides a simple way to add contextual messages, structured key values
-and stack traces to errors. gRPC interceptors are provided to allow passing
-Fudge errors over gRPC. You can import the package using the following.
+And import this package instead of the standard library `errors`
 
 ```go
 import "github.com/rossmacarthur/fudge/errors"
 ```
 
-### Construction
-
-Inline errors can be produced in a familiar way. A stack trace will be attached
-to the error.
+Construct errors in the usual way
 
 ```go
-errors.New("failed to shave yak")
+errors.New("razor not found")
 ```
 
-Additional key value pairs can be provided which can be inspected later.
+Or wrap a standard library or Fudge sentinel
 
 ```go
-errors.New("failed to shave yak", fudge.KV("yak_id", yakID))
+errors.Wrap(io.EOF, "failed to shave yak")
 ```
 
-Multiple key value pairs are also possible.
+The error will be constructed with a stack trace attached. Now the error can be
+passed up the call stack like normal.
 
 ```go
-errors.New("failed to shave yak", fudge.MKV{"yak_id": yakID, "hair_len": hairLen})
+if err != nil {
+    return err
+}
 ```
+
+Optionally, existing errors can be wrapped with additional context and key
+value pairs.
+
+```go
+if err != nil {
+    return errors.Wrap(err, "failed to shave yak", fudge.KV("yak_id", yakID))
+}
+```
+
+Formatting this error with `%+v` results in the following
+
+```go
+log.Printf("%+v", err)
+```
+```text
+failed to shave yak: razor not found {yak_id:1337}
+example/razor.go:20 locateRazor
+example/razor.go:26 example
+example/main.go:13 main
+runtime/proc.go:250 main
+runtime/asm_arm64.s:1172 goexit
+```
+
+## Construction
+
+Error construction is straight-forward. Fudge considers messages formatted with
+contextual information to be an antipattern so no `Newf` function is provided.
+Instead key value pairs should be used.
+
+### Inline errors
+
+- Ordinary inline errors
+
+  ```go
+  errors.New("failed to shave yak")
+  ```
+
+- Inline errors with a key value pair
+
+  ```go
+  errors.New("failed to shave yak", fudge.KV("yak_id", yakID))
+  ```
+
+- Inline errors with multiple key value pairs
+
+  ```go
+  errors.New("failed to shave yak", fudge.MKV{"yak_id": yakID, "hair_len": hairLen})
+  ```
+
+- Wrap an existing Fudge sentinel, this adds a stack trace
+
+  ```go
+  errors.Wrap(ErrRazorNotFound, "failed to shave yak")
+  ```
+
+- Wrap an existing non-Fudge error, this wraps it with a Fudge error
+
+  ```go
+  _, err := os.ReadFile(path)
+  if err != nil {
+      return errors.Wrap(err, "failed to read file")
+  }
+  ```
+
+- Wrap an existing non-Fudge sentinel, this wraps it with a Fudge error
+
+  ```go
+  errors.Wrap(io.EOF, "failed to read file")
+  ```
+
+### Sentinel errors
 
 Sentinel errors are typically defined in the global scope and do not get a stack
 trace attached until they are wrapped with `Wrap`. A code is required in order
@@ -47,50 +126,43 @@ for the error to be passed across gRPC in such a way that `errors.Is` checks
 still work. If you don't need this behaviour then you can just define sentinels
 using `errors.New`.
 
+
 ```go
 // If you need gRPC support
-var ErrShavingFailed = errors.Sentinel("failed to shave yak", "ERR_123456")
+var ErrShavingFailed = errors.Sentinel("failed to shave yak", "ERR_0a8cba3dfa944ecb")
 
 // Otherwise this is fine
 var ErrShavingFailed = errors.New("failed to shave yak")
 ```
 
-### Annotation
+💡 The [`fudge`](#command) command can automatically generate sentinel error
+codes for you.
 
-Existing errors can be wrapped with contextual messages and key value pairs. You
-can wrap both Fudge errors and non-Fudge errors. The only difference is that
-for non-Fudge errors the traceback will start at the `errors.Wrap` call.
+## Comparisons
 
-```go
-func locateRazor() error {
-    return errors.New("failed to locate razor", fudge.KV("hair_len", hairLen))
-}
-
-err := locateRazor()
-if err != nil {
-    return errors.Wrap(err, "failed to shave yak", fudge.KV("yak_id", yakID))
-}
-```
-
-Sentinel errors must be wrapped when used so that they get a stack trace. Errors
-can be compared to sentinel errors using `errors.Is`.
+Any error can be compared against sentinels using `errors.Is`  no matter how
+many times they were wrapped.
 
 ```go
 var ErrRazorNotFound = errors.New("razor not found")
 
-func locateRazor() error {
-    return errors.Wrap(ErrRazorNotFound, "", fudge.KV("hair_len", hairLen))
-}
-
-err := locateRazor()
-if errors.Is(err, ErrRazorNotFound) {
-    // use backup razor
-} else if err != nil {
-    return errors.Wrap(err, "failed to shave yak", fudge.KV("yak_id", yakID))
+if errors.Is(err, io.EOF) {
+    // ...
+} else if errors.Is(err, ErrRazorNotFound) {
+    // ...
 }
 ```
 
-### Formatting
+However, this doesn't work when errors are passed over the wire using gRPC. In
+order for that to work the sentinel error must be defined using
+`errors.Sentinel` which assigns a unique code. This code is then passed over the
+wire.
+
+```go
+var ErrRazorNotFound = errors.Sentinel("razor not fund", "ERR_0a8cba3dfa944ecb")
+```
+
+## Formatting
 
 For example given the following.
 
@@ -150,6 +222,56 @@ if ok := errors.As(err, &ferr); ok {
         fmt.Printf("%s:%d\n", frame.File, frame.Line)
     }
 }
+```
+
+## gRPC interceptors
+
+The `errors/grpc` package provides gRPC interceptors that can be used to
+serialize and deserialize errors over the wire.
+
+On the server add the following interceptors.
+
+```go
+import (
+    errorsgrpc "github.com/rossmacarthur/fudge/errors/grpc"
+)
+
+grpc.NewServer(
+    grpc.UnaryInterceptor(errorsgrpc.UnaryServerInterceptor),
+    grpc.StreamInterceptor(errorsgrpc.StreamServerInterceptor))
+```
+
+On the client add the following interceptors.
+```go
+import (
+    errorsgrpc "github.com/rossmacarthur/fudge/errors/grpc"
+)
+
+grpc.DialContext(ctx, addr,
+    grpc.WithUnaryInterceptor(errorsgrpc.UnaryClientInterceptor),
+    grpc.WithStreamInterceptor(errorsgrpc.StreamClientInterceptor))
+```
+
+## Command
+
+The `fudge` command is provided to automatically generate error codes for
+sentinel errors.
+
+```
+go install github.com/rossmacarthur/fudge/cmd/fudge
+```
+
+The command recursively rewrites Go files in a directory to add codes. E.g.
+given the following code.
+
+```go
+var ErrShavingFailed = errors.Sentinel("failed to shave yak", "")
+```
+
+It would be automatically updated to something like this.
+
+```go
+var ErrShavingFailed = errors.Sentinel("failed to shave yak", "ERR_0a8cba3dfa944ecb")
 ```
 
 ## License
