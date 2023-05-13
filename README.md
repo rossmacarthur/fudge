@@ -1,17 +1,23 @@
 # fudge
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/rossmacarthur/fudge.svg)](https://pkg.go.dev/github.com/rossmacarthur/fudge)
+[![Build Status](https://github.com/rossmacarthur/fudge/workflows/build/badge.svg)](https://github.com/rossmacarthur/fudge/actions/workflows/build.yaml)
+
 Oh Fudge! A straight-forward error library for Go.
+
+![example](https://github.com/rossmacarthur/fudge/assets/17109887/dcbc97f1-07b9-4ee5-8211-380b09766d14)
 
 ## Features
 
-- Implements standard library features
+- Implements idiomatic standard library functions
   - Unwrap wrapped errors using `errors.Unwrap`
-  - Comparison with `errors.Is`
+  - Compare errors with `errors.Is`
 - Contextual messages
 - Structured key value pairs
 - Stack traces
 - Custom formatting
 - gRPC support
+- Multi error support (planned)
 
 ## Getting started
 
@@ -60,10 +66,10 @@ if err != nil {
 Formatting this error with `%+v` results in the following
 
 ```go
-log.Printf("%+v", err)
+fmt.Printf("%+v\n", err)
 ```
 ```text
-failed to shave yak: razor not found {yak_id:1337}
+failed to shave yak: razor not found
 example/razor.go:20 locateRazor
 example/razor.go:26 example
 example/main.go:13 main
@@ -159,7 +165,7 @@ order for that to work the sentinel error must be defined using
 wire.
 
 ```go
-var ErrRazorNotFound = errors.Sentinel("razor not fund", "ERR_0a8cba3dfa944ecb")
+var ErrRazorNotFound = errors.Sentinel("razor not found", "ERR_0a8cba3dfa944ecb")
 ```
 
 ## Formatting
@@ -273,6 +279,10 @@ It would be automatically updated to something like this.
 ```go
 var ErrShavingFailed = errors.Sentinel("failed to shave yak", "ERR_0a8cba3dfa944ecb")
 ```
+
+## Acknowledgements
+
+Inspired by [github.com/luno/jettison](https://github.com/luno/jettison).
 
 ## License
 
