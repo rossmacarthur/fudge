@@ -12,6 +12,7 @@ type Frame struct {
 	Line     int
 }
 
+// Trace returns a stack trace, skipping the given number of frames
 func Trace(skip int) []Frame {
 	var pcs [512]uintptr
 	n := runtime.Callers(skip+1, pcs[:])
@@ -29,6 +30,7 @@ func Trace(skip int) []Frame {
 	return trace
 }
 
+// Call returns the frame of the caller, skipping the given number of frames
 func Call(skip int) Frame {
 	var pcs [3]uintptr
 	n := runtime.Callers(skip+1, pcs[:])

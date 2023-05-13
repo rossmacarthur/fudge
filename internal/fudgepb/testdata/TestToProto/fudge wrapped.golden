@@ -7,19 +7,19 @@
         {
           "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
           "function": "TestToProto.func6",
-          "line": 208,
+          "line": 213,
           "message": "such test"
         },
         {
           "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
           "function": "TestToProto.func6",
-          "line": 209,
+          "line": 214,
           "message": "very wrap"
         },
         {
           "file": "github.com/rossmacarthur/fudge/internal/fudgepb/fudgepb_test.go",
           "function": "TestToProto.func10",
-          "line": 241
+          "line": 246
         },
         {
           "file": "testing/testing.go",
@@ -27,9 +27,9 @@
           "line": 1576
         },
         {
-          "file": "runtime/asm_arm64.s",
+          "file": "runtime/asm_arch.s",
           "function": "goexit",
-          "line": 1172
+          "line": 1337
         }
       ]
     }

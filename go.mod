@@ -3,6 +3,7 @@ module github.com/rossmacarthur/fudge
 go 1.20
 
 require (
+	github.com/dave/dst v0.27.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/stretchr/testify v1.8.2
 	google.golang.org/grpc v1.53.0
@@ -10,7 +11,6 @@ require (
 )
 
 require (
-	github.com/dave/dst v0.27.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/kr/pretty v0.3.0 // indirect

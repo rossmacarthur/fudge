@@ -10,7 +10,6 @@ import (
 	"github.com/rossmacarthur/fudge/errors"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var errSentinel = errors.Sentinel("such test", "TEST1234")
@@ -52,9 +51,9 @@ func TestFromProto(t *testing.T) {
 								Line:     1576,
 							},
 							{
-								File:     "runtime/asm_arm64.s",
+								File:     "runtime/asm_arch.s",
 								Function: "goexit",
-								Line:     1172,
+								Line:     1337,
 							},
 						},
 					},
@@ -81,9 +80,9 @@ func TestFromProto(t *testing.T) {
 								Line:     1576,
 							},
 							{
-								File:     "runtime/asm_arm64.s",
+								File:     "runtime/asm_arch.s",
 								Function: "goexit",
-								Line:     1172,
+								Line:     1337,
 							},
 						},
 					},
@@ -109,9 +108,9 @@ func TestFromProto(t *testing.T) {
 								Line:     1576,
 							},
 							{
-								File:     "runtime/asm_arm64.s",
+								File:     "runtime/asm_arch.s",
 								Function: "goexit",
-								Line:     1172,
+								Line:     1337,
 							},
 						},
 					},
@@ -150,9 +149,9 @@ func TestFromProto(t *testing.T) {
 								Line:     1576,
 							},
 							{
-								File:     "runtime/asm_arm64.s",
+								File:     "runtime/asm_arch.s",
 								Function: "goexit",
-								Line:     1172,
+								Line:     1337,
 							},
 						},
 					},
@@ -178,6 +177,12 @@ func TestFromProto(t *testing.T) {
 }
 
 func TestToProto(t *testing.T) {
+	dummyFrame := &Frame{
+		File:     "runtime/asm_arch.s",
+		Function: "goexit",
+		Line:     1337,
+	}
+
 	tests := []struct {
 		name  string
 		errFn func() error
@@ -239,9 +244,12 @@ func TestToProto(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := ToProto(tt.errFn())
-			bytes, err := protojson.MarshalOptions{Multiline: true}.Marshal(got)
-			require.Nil(t, err)
-			g.Assert(t, tt.name, bytes)
+			for _, hop := range got.Hops {
+				if len(hop.Trace) > 0 {
+					hop.Trace[len(hop.Trace)-1] = dummyFrame
+				}
+			}
+			g.AssertJson(t, tt.name, got)
 		})
 	}
 }
