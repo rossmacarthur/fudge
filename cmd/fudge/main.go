@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"flag"
 	"fmt"
 	"go/token"
 	"math"
@@ -17,7 +18,24 @@ import (
 
 const imp = "github.com/rossmacarthur/fudge/errors"
 
+const usage = `fudge
+
+A tool for managing sentinel error codes
+for github.com/rossmacarthur/fudge errors.
+
+Usage:
+    fudge [OPTIONS]
+
+Options:
+    -h, --help     Print help
+`
+
 func main() {
+	flag.Usage = func() {
+		fmt.Fprint(flag.CommandLine.Output(), usage)
+	}
+	flag.Parse()
+
 	fset := token.NewFileSet()
 
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
