@@ -2,8 +2,6 @@ package errors
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -93,6 +91,27 @@ func (e *Error) Format(s fmt.State, verb rune) {
 	}
 }
 
+// FormatCustom visits each frame context message in reverse order, then the
+// primary error message and then finally the cause.
+//
+// This is typically what you want to do when formatting the error in a custom
+// way. For more complex formatting you can manually implement this function as
+// all fields on Error are public.
+func (e *Error) FormatCustom(visit func(message string)) {
+	for i := len(e.Trace) - 1; i >= 0; i-- {
+		m := e.Trace[i].Message
+		if m != "" {
+			visit(m)
+		}
+	}
+	if e.Message != "" {
+		visit(e.Message)
+	}
+	if e.Cause != nil {
+		visit(e.Cause.Error())
+	}
+}
+
 // fullMessage returns the full error message
 func (e *Error) fullMessage() string {
 	var s strings.Builder
@@ -135,8 +154,4 @@ func (e *Error) fullKeyValues() KeyValues {
 		}
 	}
 	return kvs
-}
-
-func binary() string {
-	return filepath.Base(os.Args[0])
 }

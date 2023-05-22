@@ -3,6 +3,8 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/rossmacarthur/fudge"
 )
@@ -94,6 +96,10 @@ func Wrap(err error, msg string, opts ...fudge.Option) error {
 	}
 
 	return errors
+}
+
+func binary() string {
+	return filepath.Base(os.Args[0])
 }
 
 func findCallSite(e *Error, skip int) *Frame {
